@@ -14,13 +14,27 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// Inserta la segunda imagen después del párrafo del medio, para que el
+// relato "respire" en vez de tener las dos imágenes juntas arriba.
+function insertMidImage(contenidoHtml, imgTag) {
+  if (!imgTag) return contenidoHtml;
+  const cierres = [...contenidoHtml.matchAll(/<\/p>/g)];
+  if (cierres.length < 2) return contenidoHtml + imgTag;
+  const medio = cierres[Math.floor(cierres.length / 2) - 1];
+  const pos = medio.index + medio[0].length;
+  return contenidoHtml.slice(0, pos) + imgTag + contenidoHtml.slice(pos);
+}
+
 function renderPage(h) {
   const fecha = new Date(h.publicado_en).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
   const canonicalUrl = `https://geeknoticias.com/historia/${encodeURIComponent(h.slug)}`;
 
   const aviso = h.es_real
-    ? `<div class="aviso"><b>Basado en un hecho real.</b> Este relato parte de un hecho real, contado públicamente por su protagonista, y fue narrado con licencia dramática por Bastián con asistencia de IA. Nombres y detalles identificables fueron cambiados. La imagen es una ilustración artística, no una fotografía del hecho.${h.fuente_url ? ` <a href="${escapeHtml(h.fuente_url)}" target="_blank" rel="noopener noreferrer nofollow">Ver fuente original</a>.` : ''}</div>`
+    ? `<div class="aviso"><b>Basado en un hecho real.</b> Este relato parte de un hecho real, contado públicamente por su protagonista, y fue narrado con licencia dramática por Bastián con asistencia de IA. Nombres y detalles identificables fueron cambiados. Las imágenes son ilustraciones artísticas, no fotografías del hecho.${h.fuente_url ? ` <a href="${escapeHtml(h.fuente_url)}" target="_blank" rel="noopener noreferrer nofollow">Ver fuente original</a>.` : ''}</div>`
     : `<div class="aviso"><b>Historia inspirada en hechos reales.</b> Este es un relato narrativo/inspiracional escrito con asistencia de IA, no una noticia verificada. Los nombres, lugares y detalles son ilustrativos.</div>`;
+
+  const imgTag2 = h.imagen_url_2 ? `<img src="${escapeHtml(h.imagen_url_2)}" alt="${escapeHtml(h.titulo)}">` : '';
+  const contenidoConImagen = insertMidImage(h.contenido_html, imgTag2);
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -69,8 +83,9 @@ ${h.imagen_url ? `<meta property="og:image" content="${escapeHtml(h.imagen_url)}
   .cat{font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; background:var(--accent-soft); color:var(--accent); display:inline-block; padding:5px 12px; border-radius:6px; margin-bottom:16px;}
   h1{font-family:'Playfair Display', serif; font-style:italic; font-size:clamp(26px,4vw,38px); font-weight:600; line-height:1.2; margin:0 0 10px; color:var(--title);}
   .meta{font-size:12.5px; color:var(--text-dim); font-family:'JetBrains Mono', monospace; margin-bottom:22px;}
-  .contenido{font-size:18px; line-height:1.85; color:var(--text); font-family:'Playfair Display', serif; font-style:italic;}
+  .contenido{font-size:18px; line-height:1.85; color:var(--text); font-family:'Georgia', 'Playfair Display', serif;}
   .contenido p{margin:0 0 18px;}
+  .contenido img{margin:8px 0 24px;}
   .credito{font-size:11px; color:var(--text-dim); margin-top:6px; font-family:'Inter', sans-serif; font-style:normal;}
   .ad-slot{margin:32px 0;}
   .firma{margin-top:36px; padding-top:20px; border-top:1px solid var(--border); font-size:13px; color:var(--text-dim); font-family:'Inter', sans-serif;}
@@ -88,7 +103,7 @@ ${h.imagen_url ? `<meta property="og:image" content="${escapeHtml(h.imagen_url)}
   <div class="meta">${escapeHtml(fecha)} · Historias</div>
   ${h.imagen_url ? `<img src="${escapeHtml(h.imagen_url)}" alt="${escapeHtml(h.titulo)}">${h.imagen_credito ? `<div class="credito">${escapeHtml(h.imagen_credito)}</div>` : ''}` : ''}
   <div class="ad-slot"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5927579839118584" data-ad-format="fluid" data-ad-layout="in-article"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
-  <div class="contenido">${h.contenido_html}</div>
+  <div class="contenido">${contenidoConImagen}</div>
   <div class="firma">Escrito por <b>Bastián</b>, cronista de historias de GeekNoticias.</div>
 </main>
 <footer>© ${new Date().getFullYear()} GeekNoticias · <a href="/privacidad.html">Privacidad</a> · <a href="/terminos.html">Términos</a></footer>

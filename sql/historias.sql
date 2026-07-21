@@ -25,12 +25,14 @@ alter table historias add column if not exists es_real boolean not null default 
 alter table historias add column if not exists fuente_id text;
 alter table historias add column if not exists fuente_url text;
 alter table historias add column if not exists fuente_sub text;
+alter table historias add column if not exists imagen_url_2 text;
 
 create index if not exists historias_publicado_idx on historias (publicado_en desc);
 create unique index if not exists historias_fuente_id_idx on historias (fuente_id) where fuente_id is not null;
 
 alter table historias enable row level security;
 
+drop policy if exists "Lectura pública de historias" on historias;
 create policy "Lectura pública de historias"
   on historias for select
   using (true);

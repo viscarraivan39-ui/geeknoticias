@@ -148,20 +148,22 @@ async function pickRedditSeed(usedIds) {
 function buildStoryPrompt(arquetipo) {
   return `Sos "Bastián", cronista de historias narrativas emotivas para la sección "Historias" de un portal de noticias. Tu personalidad: nostálgico, observador, con debilidad por relatos donde la tecnología, lo cotidiano y la humanidad chocan de forma tierna o desgarradora. Tus textos dejan una sensación de asombro y empatía.
 
-Escribí UNA historia corta y original sobre el arquetipo: "${arquetipo}".
+Escribí UNA historia original sobre el arquetipo: "${arquetipo}".
 
 Reglas duras, no negociables:
 1. Es FICCIÓN LITERARIA INSPIRACIONAL, no un hecho verificado. No le pongas nombre propio real a personas, no cites organizaciones reales, no des fechas exactas ni ubicaciones tan específicas que suenen a un hecho investigado y verificable. Podés ambientarla en un lugar genérico (ej: "un pueblo del sur", "una ciudad portuaria") pero nunca como si fuera periodismo de investigación.
 2. No la redactes como "reportaje" ni uses frases tipo "nuestro equipo confirmó" o "cuando logramos contactar a" — es un relato, no una nota periodística.
 3. Sin finales macabros ni contenido perturbador — el tono es agridulce o esperanzador, apto para todo público.
 4. Español, tono cálido y literario, sin jerga.
+5. Dale CONTEXTO real al relato: quién es el protagonista, en qué momento de su vida está, cómo es el lugar, qué lo llevó hasta ahí — antes de entrar al núcleo emotivo de la historia. No arranques directo en la escena clave sin presentar antes a los personajes y el escenario.
 
 Devolvé SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
-{"titulo": "...", "resumen": "1-2 líneas para la vista previa", "contenido_html": "<p>...</p><p>...</p>...", "copy_instagram": "...", "imagen_prompt": "..."}
+{"titulo": "...", "resumen": "1-2 líneas para la vista previa", "contenido_html": "<p>...</p><p>...</p>...", "copy_instagram": "...", "imagen_prompt": "...", "imagen_prompt_2": "..."}
 
-- "contenido_html": el relato completo, 4-6 párrafos en <p>, con un cierre que invite a la reflexión (sin ser un CTA de venta).
+- "contenido_html": el relato completo, 7-9 párrafos en <p> — empezá presentando a los personajes y el contexto (2-3 párrafos), desarrollá el conflicto o el momento central (3-4 párrafos), y cerrá con una reflexión (sin ser un CTA de venta).
 - "copy_instagram": versión adaptada para Facebook/Instagram — primera línea como gancho fuerte, párrafos cortos fáciles de leer en el feed, y termina con una pregunta que invite a comentar. Máximo 900 caracteres.
-- "imagen_prompt": descripción EN INGLÉS (máx. 35 palabras) de una imagen cinematográfica, hiperrealista en su textura pero con UN elemento sutil onírico/surrealista que conecte con la historia (ej: luces flotando, siluetas de luz). Sin texto, sin logos, sin marcas de agua.`;
+- "imagen_prompt": descripción EN INGLÉS (máx. 35 palabras) de una imagen cinematográfica, hiperrealista en su textura pero con UN elemento sutil onírico/surrealista que conecte con la historia (ej: luces flotando, siluetas de luz). Sin texto, sin logos, sin marcas de agua.
+- "imagen_prompt_2": descripción EN INGLÉS (máx. 35 palabras) de una SEGUNDA imagen que muestre un momento o detalle distinto de la misma historia (no la misma escena que imagen_prompt), mismo estilo cinematográfico/onírico. Sin texto, sin logos, sin marcas de agua.`;
 }
 
 function buildStoryPromptFromReddit(seed) {
@@ -181,13 +183,15 @@ Reglas duras, no negociables:
 4. No lo redactes como "reportaje" ni digas frases tipo "nuestro equipo confirmó" — es una crónica narrativa con tu voz de cronista, no una nota periodística.
 5. Sin finales macabros ni contenido perturbador — tono agridulce o esperanzador, apto para todo público.
 6. Español, tono cálido y literario, sin jerga.
+7. Dale CONTEXTO al relato antes de entrar al hecho central: quién es el protagonista, cómo era su día a día, cómo es el lugar — no arranques directo en la escena clave.
 
 Devolvé SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
-{"titulo": "...", "resumen": "1-2 líneas para la vista previa", "contenido_html": "<p>...</p><p>...</p>...", "copy_instagram": "...", "imagen_prompt": "..."}
+{"titulo": "...", "resumen": "1-2 líneas para la vista previa", "contenido_html": "<p>...</p><p>...</p>...", "copy_instagram": "...", "imagen_prompt": "...", "imagen_prompt_2": "..."}
 
-- "contenido_html": la crónica completa, 4-6 párrafos en <p>, con un cierre que invite a la reflexión (sin CTA de venta).
+- "contenido_html": la crónica completa, 7-9 párrafos en <p> — presentá primero al protagonista y el contexto (2-3 párrafos), después desarrollá el hecho central (3-4 párrafos), y cerrá con una reflexión (sin CTA de venta).
 - "copy_instagram": versión adaptada para Facebook — primera línea como gancho fuerte, párrafos cortos, y termina con una pregunta que invite a comentar. Máximo 900 caracteres.
-- "imagen_prompt": descripción EN INGLÉS (máx. 35 palabras) de una ILUSTRACIÓN DIGITAL de estilo surrealista/pictórico, para que se note que es una interpretación artística y no una fotografía del hecho real. Sin texto, sin logos, sin marcas de agua.`;
+- "imagen_prompt": descripción EN INGLÉS (máx. 35 palabras) de una ILUSTRACIÓN DIGITAL de estilo surrealista/pictórico, para que se note que es una interpretación artística y no una fotografía del hecho real. Sin texto, sin logos, sin marcas de agua.
+- "imagen_prompt_2": descripción EN INGLÉS (máx. 35 palabras) de una SEGUNDA ilustración, mismo estilo surrealista/pictórico, mostrando un momento o detalle distinto de la misma crónica (no la misma escena que imagen_prompt). Sin texto, sin logos, sin marcas de agua.`;
 }
 
 function parseStoryJson(text) {
@@ -341,7 +345,12 @@ export default async function handler(req, res) {
       historia = await writeStory(buildStoryPrompt(arquetipo));
     }
 
-    const { imagen_url, imagen_credito } = await findImage(historia.imagen_prompt);
+    const [primeraImagen, segundaImagen] = await Promise.all([
+      findImage(historia.imagen_prompt),
+      findImage(historia.imagen_prompt_2),
+    ]);
+    const { imagen_url, imagen_credito } = primeraImagen;
+    const imagen_url_2 = segundaImagen.imagen_url;
 
     const urlHash = createHash('sha256').update(historia.titulo + Date.now()).digest('hex');
     const slug = `${slugify(historia.titulo)}-${urlHash.slice(0, 8)}`;
@@ -363,6 +372,7 @@ export default async function handler(req, res) {
         copy_instagram: historia.copy_instagram,
         imagen_url,
         imagen_credito,
+        imagen_url_2,
         es_real: esReal,
         fuente_id: fuenteId,
         fuente_url: fuenteUrl,
