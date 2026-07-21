@@ -3,13 +3,15 @@
 // Este endpoint lo llama Vercel Cron automáticamente (ver vercel.json) una
 // vez al día. Busca noticias recientes de varias categorías, las reescribe
 // con Groq (contenido 100% original, no copy-paste, para no tener
-// problemas de "scraped content" con AdSense), les genera una imagen única
-// con IA (Pollinations, con respaldo en Pexels si falla o tarda), y guarda
-// todo en Supabase. También borra las noticias con más de 30 días.
+// problemas de "scraped content" con AdSense; si Groq falla, reintenta con
+// NVIDIA NIM), les genera una imagen única con IA (Pollinations, con
+// respaldo en Pexels si falla o tarda), y guarda todo en Supabase.
+// También borra las noticias con más de 30 días.
 //
 // ─── VARIABLES DE ENTORNO NECESARIAS (configurar en Vercel) ─────────────
 //   GNEWS_API_KEY              → cuenta gratis en https://gnews.io
 //   GROQ_API_KEY               → gratis, sin tarjeta, en https://console.groq.com/keys
+//   NVIDIA_API_KEY             → gratis, sin tarjeta, en https://build.nvidia.com (respaldo)
 //   PEXELS_API_KEY             → cuenta gratis en https://www.pexels.com/api (respaldo)
 //   SUPABASE_URL                → URL del proyecto Supabase
 //   SUPABASE_SERVICE_ROLE_KEY   → service_role key (NO la anon key: esta
@@ -134,10 +136,10 @@ async function saveNoticia(supabaseUrl, serviceKey, row) {
   return true;
 }
 
-// ─── GROQ (reescritura) ───────────────────────────────────────────────
+// ─── REESCRITURA: Groq (principal) con respaldo en NVIDIA NIM ─────────
 
-async function rewriteWithGroq(article) {
-  const prompt = `Actúa como un redactor senior de tecnología y actualidad, especializado en artículos extensos y bien documentados para un medio digital serio. Reescribe totalmente la siguiente noticia con tus propias palabras (no copies frases del original ni la resumas superficialmente), ampliando con contexto, antecedentes relevantes, posibles implicancias y comparaciones cuando corresponda, en español, tono informativo y atractivo.
+function buildRewritePrompt(article) {
+  return `Actúa como un redactor senior de tecnología y actualidad, especializado en artículos extensos y bien documentados para un medio digital serio. Reescribe totalmente la siguiente noticia con tus propias palabras (no copies frases del original ni la resumas superficialmente), ampliando con contexto, antecedentes relevantes, posibles implicancias y comparaciones cuando corresponda, en español, tono informativo y atractivo.
 
 Título original: ${article.title}
 Descripción original: ${article.description || ''}
@@ -148,7 +150,21 @@ Devuelve SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
 El contenido_html debe tener: introducción, 4 subtítulos H2 con desarrollo sustancial cada uno (contexto, detalles, impacto/implicancias, y perspectiva a futuro), y una conclusión. Mínimo 700 palabras. No hagas un simple resumen: expandí cada sección con profundidad real. Sin jerga técnica excesiva ni inventar datos falsos o cifras que no puedas fundamentar en la información dada.
 
 El campo imagen_prompt debe ser una descripción breve EN INGLÉS (máximo 20 palabras) de una imagen editorial fotorrealista que ilustre el tema del artículo, sin texto ni logos ni marcas de agua.`;
+}
 
+// Parser tolerante: algunos modelos envuelven el JSON en texto o \`\`\`.
+function parseRewriteJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start === -1 || end === -1) throw new Error('No se encontró JSON en la respuesta del modelo');
+    return JSON.parse(text.slice(start, end + 1));
+  }
+}
+
+async function rewriteWithGroq(article) {
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -157,7 +173,7 @@ El campo imagen_prompt debe ser una descripción breve EN INGLÉS (máximo 20 pa
     },
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: buildRewritePrompt(article) }],
       response_format: { type: 'json_object' },
     }),
   });
@@ -165,7 +181,39 @@ El campo imagen_prompt debe ser una descripción breve EN INGLÉS (máximo 20 pa
   const data = await resp.json();
   const text = data.choices?.[0]?.message?.content;
   if (!text) throw new Error(`Groq no devolvió contenido: ${JSON.stringify(data)}`);
-  return JSON.parse(text);
+  return parseRewriteJson(text);
+}
+
+// Respaldo si Groq falla o se satura. NVIDIA NIM expone una API compatible con OpenAI.
+async function rewriteWithNvidia(article) {
+  const resp = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'meta/llama-3.3-70b-instruct',
+      messages: [{ role: 'user', content: buildRewritePrompt(article) }],
+      temperature: 0.6,
+      max_tokens: 3000,
+    }),
+  });
+  if (!resp.ok) throw new Error(`NVIDIA NIM HTTP ${resp.status}: ${await resp.text()}`);
+  const data = await resp.json();
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error(`NVIDIA NIM no devolvió contenido: ${JSON.stringify(data)}`);
+  return parseRewriteJson(text);
+}
+
+async function rewriteArticle(article) {
+  try {
+    return await rewriteWithGroq(article);
+  } catch (err) {
+    console.error('Groq falló, reintentando con NVIDIA NIM:', err.message || err);
+    if (!process.env.NVIDIA_API_KEY) throw err;
+    return await rewriteWithNvidia(article);
+  }
 }
 
 // ─── IMÁGENES: Pollinations (IA, sin key) con respaldo en Pexels ───────
@@ -278,7 +326,7 @@ export default async function handler(req, res) {
       }
       if (catReport.inserted >= TARGET_PER_CATEGORY) return; // recheck tras el await
 
-      const rewritten = await rewriteWithGroq(article);
+      const rewritten = await rewriteArticle(article);
       const { imagen_url, imagen_credito } = await findImage(rewritten.imagen_prompt, cat.imageFallbackQuery);
       const slugBase = slugify(rewritten.titulo || article.title);
       const slug = `${slugBase}-${urlHash.slice(0, 8)}`;
