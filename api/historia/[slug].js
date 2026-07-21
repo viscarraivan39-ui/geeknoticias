@@ -18,6 +18,10 @@ function renderPage(h) {
   const fecha = new Date(h.publicado_en).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
   const canonicalUrl = `https://geeknoticias.com/historia/${encodeURIComponent(h.slug)}`;
 
+  const aviso = h.es_real
+    ? `<div class="aviso"><b>Basado en un hecho real.</b> Este relato parte de un hecho real, contado públicamente por su protagonista, y fue narrado con licencia dramática por Bastián con asistencia de IA. Nombres y detalles identificables fueron cambiados. La imagen es una ilustración artística, no una fotografía del hecho.${h.fuente_url ? ` <a href="${escapeHtml(h.fuente_url)}" target="_blank" rel="noopener noreferrer nofollow">Ver fuente original</a>.` : ''}</div>`
+    : `<div class="aviso"><b>Historia inspirada en hechos reales.</b> Este es un relato narrativo/inspiracional escrito con asistencia de IA, no una noticia verificada. Los nombres, lugares y detalles son ilustrativos.</div>`;
+
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -78,7 +82,7 @@ ${h.imagen_url ? `<meta property="og:image" content="${escapeHtml(h.imagen_url)}
 <body>
 <header><div class="inner"><a class="logo" href="/">Geek<span class="dot">Noticias</span></a><a href="/historias.html">← Todas las historias</a></div></header>
 <main>
-  <div class="aviso"><b>Historia inspirada en hechos reales.</b> Este es un relato narrativo/inspiracional escrito con asistencia de IA, no una noticia verificada. Los nombres, lugares y detalles son ilustrativos.</div>
+  ${aviso}
   <span class="cat">${escapeHtml(h.arquetipo)}</span>
   <h1>${escapeHtml(h.titulo)}</h1>
   <div class="meta">${escapeHtml(fecha)} · Historias</div>

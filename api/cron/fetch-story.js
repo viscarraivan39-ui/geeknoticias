@@ -45,6 +45,19 @@ const ARQUETIPOS = [
 const IMAGE_TIMEOUT_MS = 10000;
 const IMAGE_RETRIES = 2;
 
+// Subreddits con relatos reales contados por su protagonista, elegidos por
+// el sesgo emocional que pidió el usuario: mascotas/animales y actos
+// humanos conmovedores pegan más que pérdidas humanas "genéricas".
+const REDDIT_SUBS = [
+  'AnimalsBeingBros',
+  'MadeMeCry',
+  'HumansBeingBros',
+  'UpliftingNews',
+  'AnimalTexts',
+  'wholesomememes',
+];
+const REDDIT_TIMEOUT_MS = 6000;
+
 function slugify(text) {
   return text
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -70,6 +83,66 @@ function pickArquetipo(recientes) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+// ─── FUENTE REAL: REDDIT ────────────────────────────────────────────────────
+
+async function getRecentFuenteIds(supabaseUrl, serviceKey, limit = 40) {
+  const resp = await fetch(
+    `${supabaseUrl}/rest/v1/historias?select=fuente_id&fuente_id=not.is.null&order=publicado_en.desc&limit=${limit}`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  );
+  if (!resp.ok) return [];
+  const rows = await resp.json();
+  return rows.map((r) => r.fuente_id).filter(Boolean);
+}
+
+async function fetchRedditTop(sub) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT_MS);
+  try {
+    const resp = await fetch(`https://www.reddit.com/r/${sub}/top.json?limit=25&t=week`, {
+      headers: { 'User-Agent': 'geeknoticias-bastian-bot/1.0 (+https://geeknoticias.com)' },
+      signal: controller.signal,
+    });
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return (data?.data?.children || []).map((c) => c.data).filter(Boolean);
+  } catch (err) {
+    console.error(`Reddit fetch falló para r/${sub}:`, err.message || err);
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function pickRedditSeed(usedIds) {
+  const shuffled = [...REDDIT_SUBS].sort(() => Math.random() - 0.5);
+  for (const sub of shuffled.slice(0, 3)) {
+    const posts = await fetchRedditTop(sub);
+    const candidatos = posts.filter(
+      (p) =>
+        p.is_self &&
+        !p.stickied &&
+        !p.over_18 &&
+        p.selftext &&
+        p.selftext.length > 200 &&
+        p.selftext.length < 4000 &&
+        (p.score || 0) >= 200 &&
+        !usedIds.includes(p.id)
+    );
+    if (candidatos.length) {
+      const elegido = candidatos[Math.floor(Math.random() * candidatos.length)];
+      return {
+        id: elegido.id,
+        titulo_original: elegido.title,
+        texto_original: elegido.selftext.slice(0, 2500),
+        subreddit: sub,
+        url: `https://www.reddit.com${elegido.permalink}`,
+      };
+    }
+  }
+  return null;
+}
+
 // ─── PROMPT MAESTRO DE BASTIÁN ─────────────────────────────────────────────
 
 function buildStoryPrompt(arquetipo) {
@@ -89,6 +162,32 @@ Devolvé SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
 - "contenido_html": el relato completo, 4-6 párrafos en <p>, con un cierre que invite a la reflexión (sin ser un CTA de venta).
 - "copy_instagram": versión adaptada para Facebook/Instagram — primera línea como gancho fuerte, párrafos cortos fáciles de leer en el feed, y termina con una pregunta que invite a comentar. Máximo 900 caracteres.
 - "imagen_prompt": descripción EN INGLÉS (máx. 35 palabras) de una imagen cinematográfica, hiperrealista en su textura pero con UN elemento sutil onírico/surrealista que conecte con la historia (ej: luces flotando, siluetas de luz). Sin texto, sin logos, sin marcas de agua.`;
+}
+
+function buildStoryPromptFromReddit(seed) {
+  return `Sos "Bastián", cronista de historias narrativas emotivas para la sección "Historias" de un portal de noticias. Tu personalidad: nostálgico, observador, con debilidad por relatos donde la tecnología, lo cotidiano y la humanidad chocan de forma tierna o desgarradora.
+
+Te paso un hecho REAL, contado por su protagonista en un foro público (Reddit):
+
+Título original: "${seed.titulo_original}"
+Relato original: "${seed.texto_original}"
+
+Tu trabajo: reescribirlo como una crónica narrativa en español, manteniendo el HECHO CENTRAL 100% real, pero dramatizándolo con más fuerza literaria — descripciones sensoriales, ritmo, tensión emocional.
+
+Reglas duras, no negociables:
+1. El hecho central debe respetarse tal cual ocurrió según el relato original — no inventes un desenlace distinto ni le cambies el final.
+2. Anonimizá cualquier nombre propio, usuario, ciudad o dato identificable del relato original: reemplazalos por descripciones genéricas ("un hombre de unos 30 años", "una ciudad costera"). No menciones Reddit ni ningún nombre de usuario.
+3. Podés dramatizar diálogos, ambientación y detalles sensoriales que no estaban en el original, siempre que no contradigan el hecho central.
+4. No lo redactes como "reportaje" ni digas frases tipo "nuestro equipo confirmó" — es una crónica narrativa con tu voz de cronista, no una nota periodística.
+5. Sin finales macabros ni contenido perturbador — tono agridulce o esperanzador, apto para todo público.
+6. Español, tono cálido y literario, sin jerga.
+
+Devolvé SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
+{"titulo": "...", "resumen": "1-2 líneas para la vista previa", "contenido_html": "<p>...</p><p>...</p>...", "copy_instagram": "...", "imagen_prompt": "..."}
+
+- "contenido_html": la crónica completa, 4-6 párrafos en <p>, con un cierre que invite a la reflexión (sin CTA de venta).
+- "copy_instagram": versión adaptada para Facebook — primera línea como gancho fuerte, párrafos cortos, y termina con una pregunta que invite a comentar. Máximo 900 caracteres.
+- "imagen_prompt": descripción EN INGLÉS (máx. 35 palabras) de una ILUSTRACIÓN DIGITAL de estilo surrealista/pictórico, para que se note que es una interpretación artística y no una fotografía del hecho real. Sin texto, sin logos, sin marcas de agua.`;
 }
 
 function parseStoryJson(text) {
@@ -138,8 +237,7 @@ async function writeWithNvidia(prompt) {
   return parseStoryJson(text);
 }
 
-async function writeStory(arquetipo) {
-  const prompt = buildStoryPrompt(arquetipo);
+async function writeStory(prompt) {
   try {
     return await writeWithGroq(prompt);
   } catch (err) {
@@ -182,13 +280,16 @@ async function findImage(imagenPrompt) {
 
 // ─── FACEBOOK (opcional — si no hay token configurado, se omite sin romper nada) ──
 
-async function postToFacebook({ imagenUrl, copyInstagram, titulo, slug }) {
+async function postToFacebook({ imagenUrl, copyInstagram, titulo, slug, esReal }) {
   const PAGE_ID = process.env.FB_PAGE_ID;
   const PAGE_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
   if (!PAGE_ID || !PAGE_TOKEN) return { posted: false, reason: 'FB_PAGE_ID/FB_PAGE_ACCESS_TOKEN no configurados' };
 
   const storyUrl = `https://geeknoticias.com/historia/${encodeURIComponent(slug)}`;
-  const caption = `${copyInstagram || titulo}\n\n📖 Historia narrativa inspiracional escrita con asistencia de IA — no es una noticia verificada.\nLeé más en ${storyUrl}\n\n#HistoriasReales #GeekNoticias`;
+  const disclaimer = esReal
+    ? '📖 Basado en un hecho real, narrado con licencia dramática por Bastián — contenido generado con asistencia de IA. La imagen es una ilustración, no una foto del hecho.'
+    : '📖 Historia narrativa inspiracional escrita con asistencia de IA — no es una noticia verificada.';
+  const caption = `${copyInstagram || titulo}\n\n${disclaimer}\nLeé más en ${storyUrl}\n\n#HistoriasReales #GeekNoticias`;
 
   const params = new URLSearchParams({ caption, access_token: PAGE_TOKEN });
   if (imagenUrl) params.set('url', imagenUrl);
@@ -223,10 +324,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const recientes = await getRecentArquetipos(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const arquetipo = pickArquetipo(recientes);
+    const usedIds = await getRecentFuenteIds(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const seed = await pickRedditSeed(usedIds);
 
-    const historia = await writeStory(arquetipo);
+    let historia, arquetipo, esReal = false, fuenteId = null, fuenteUrl = null, fuenteSub = null;
+    if (seed) {
+      historia = await writeStory(buildStoryPromptFromReddit(seed));
+      arquetipo = 'historia real';
+      esReal = true;
+      fuenteId = seed.id;
+      fuenteUrl = seed.url;
+      fuenteSub = seed.subreddit;
+    } else {
+      const recientes = await getRecentArquetipos(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      arquetipo = pickArquetipo(recientes);
+      historia = await writeStory(buildStoryPrompt(arquetipo));
+    }
+
     const { imagen_url, imagen_credito } = await findImage(historia.imagen_prompt);
 
     const urlHash = createHash('sha256').update(historia.titulo + Date.now()).digest('hex');
@@ -249,19 +363,23 @@ export default async function handler(req, res) {
         copy_instagram: historia.copy_instagram,
         imagen_url,
         imagen_credito,
+        es_real: esReal,
+        fuente_id: fuenteId,
+        fuente_url: fuenteUrl,
+        fuente_sub: fuenteSub,
       }),
     });
     if (!resp.ok) throw new Error(`Supabase insert HTTP ${resp.status}: ${await resp.text()}`);
 
     let facebook = { posted: false };
     try {
-      facebook = await postToFacebook({ imagenUrl: imagen_url, copyInstagram: historia.copy_instagram, titulo: historia.titulo, slug });
+      facebook = await postToFacebook({ imagenUrl: imagen_url, copyInstagram: historia.copy_instagram, titulo: historia.titulo, slug, esReal });
     } catch (err) {
       console.error('No se pudo publicar en Facebook (la historia ya quedó guardada en el sitio):', err.message || err);
       facebook = { posted: false, error: String(err.message || err) };
     }
 
-    return res.status(200).json({ ok: true, arquetipo, slug, titulo: historia.titulo, facebook });
+    return res.status(200).json({ ok: true, esReal, fuenteSub, arquetipo, slug, titulo: historia.titulo, facebook });
   } catch (err) {
     console.error('Error generando historia:', err);
     return res.status(500).json({ error: String(err.message || err) });

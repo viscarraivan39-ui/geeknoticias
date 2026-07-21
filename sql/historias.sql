@@ -18,7 +18,16 @@ create table if not exists historias (
   publicado_en timestamptz not null default now()
 );
 
+-- Historias "reales" (partidas de un hecho real de Reddit, dramatizado por Bastián)
+-- vs. historias 100% ficticias (arquetipo). fuente_id sirve para no repetir la
+-- misma historia base dos veces.
+alter table historias add column if not exists es_real boolean not null default false;
+alter table historias add column if not exists fuente_id text;
+alter table historias add column if not exists fuente_url text;
+alter table historias add column if not exists fuente_sub text;
+
 create index if not exists historias_publicado_idx on historias (publicado_en desc);
+create unique index if not exists historias_fuente_id_idx on historias (fuente_id) where fuente_id is not null;
 
 alter table historias enable row level security;
 

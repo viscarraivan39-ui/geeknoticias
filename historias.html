@@ -92,7 +92,7 @@ function cardHtml(h, i) {
   return `<a class="card" style="--i:${i}" href="/historia/${encodeURIComponent(h.slug)}">
     <div class="card__media">${img}</div>
     <div class="card__body">
-      <span class="card__cat">${h.arquetipo}</span>
+      <span class="card__cat">${h.es_real ? 'Hecho real' : h.arquetipo}</span>
       <div class="card__title">${h.titulo}</div>
       <div class="card__resumen">${h.resumen}</div>
     </div>

@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
   const url = new URL(`${SUPABASE_URL}/rest/v1/historias`);
-  url.searchParams.set('select', 'slug,arquetipo,titulo,resumen,imagen_url,imagen_credito,publicado_en');
+  url.searchParams.set('select', 'slug,arquetipo,titulo,resumen,imagen_url,imagen_credito,publicado_en,es_real');
   url.searchParams.set('order', 'publicado_en.desc');
   url.searchParams.set('limit', String(limit));
   url.searchParams.set('offset', String(offset));
