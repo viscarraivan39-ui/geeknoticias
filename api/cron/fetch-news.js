@@ -153,6 +153,7 @@ async function findImage(query) {
   return { imagen_url: photo.src.large, imagen_credito: photo.photographer };
 }
 
+// Devuelve false si ya existía (conflicto de unique constraint), true si insertó.
 async function saveNoticia(supabaseUrl, serviceKey, row) {
   const resp = await fetch(`${supabaseUrl}/rest/v1/noticias`, {
     method: 'POST',
@@ -160,11 +161,13 @@ async function saveNoticia(supabaseUrl, serviceKey, row) {
       apikey: serviceKey,
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
+      Prefer: 'resolution=ignore-duplicates,return=minimal',
     },
     body: JSON.stringify(row),
   });
+  if (resp.status === 409) return false;
   if (!resp.ok) throw new Error(`Supabase insert HTTP ${resp.status}: ${await resp.text()}`);
+  return true;
 }
 
 export default async function handler(req, res) {
@@ -223,7 +226,7 @@ export default async function handler(req, res) {
         const slugBase = slugify(rewritten.titulo || article.title);
         const slug = `${slugBase}-${urlHash.slice(0, 8)}`;
 
-        await saveNoticia(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        const wasInserted = await saveNoticia(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
           slug,
           categoria: cat.categoria,
           titulo: rewritten.titulo,
@@ -236,8 +239,12 @@ export default async function handler(req, res) {
           fuente_url_hash: urlHash,
         });
 
-        inserted++;
-        report[cat.categoria].inserted++;
+        if (wasInserted) {
+          inserted++;
+          report[cat.categoria].inserted++;
+        } else {
+          report[cat.categoria].skipped++;
+        }
       } catch (err) {
         console.error(`Error procesando "${article.title}":`, err);
         report[cat.categoria].errors.push(String(err.message || err));
