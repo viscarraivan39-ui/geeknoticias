@@ -13,6 +13,12 @@
 //   GROQ_API_KEY, NVIDIA_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
 //   CRON_SECRET / ADMIN_KEY
 //
+// ─── OPCIONAL: publicar también en la fanpage de Facebook ─────────────────
+//   FB_PAGE_ID              → ID de la página en Graph API (no el de la URL del perfil)
+//   FB_PAGE_ACCESS_TOKEN    → token de página con permiso pages_manage_posts / CREATE_CONTENT
+//   Si estas dos no están configuradas, simplemente no publica en Facebook
+//   y la historia igual queda guardada en el sitio — no rompe nada.
+//
 // Antes de usar esto hay que correr sql/historias.sql en el SQL Editor de Supabase.
 
 import { createHash } from 'node:crypto';
@@ -174,6 +180,30 @@ async function findImage(imagenPrompt) {
   return { imagen_url: null, imagen_credito: null };
 }
 
+// ─── FACEBOOK (opcional — si no hay token configurado, se omite sin romper nada) ──
+
+async function postToFacebook({ imagenUrl, copyInstagram, titulo, slug }) {
+  const PAGE_ID = process.env.FB_PAGE_ID;
+  const PAGE_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
+  if (!PAGE_ID || !PAGE_TOKEN) return { posted: false, reason: 'FB_PAGE_ID/FB_PAGE_ACCESS_TOKEN no configurados' };
+
+  const storyUrl = `https://geeknoticias.com/historia/${encodeURIComponent(slug)}`;
+  const caption = `${copyInstagram || titulo}\n\n📖 Historia narrativa inspiracional escrita con asistencia de IA — no es una noticia verificada.\nLeé más en ${storyUrl}\n\n#HistoriasReales #GeekNoticias`;
+
+  const params = new URLSearchParams({ caption, access_token: PAGE_TOKEN });
+  if (imagenUrl) params.set('url', imagenUrl);
+
+  const endpoint = imagenUrl
+    ? `https://graph.facebook.com/v20.0/${PAGE_ID}/photos`
+    : `https://graph.facebook.com/v20.0/${PAGE_ID}/feed`;
+  if (!imagenUrl) { params.delete('caption'); params.set('message', caption); }
+
+  const resp = await fetch(endpoint, { method: 'POST', body: params });
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(`Facebook HTTP ${resp.status}: ${JSON.stringify(data)}`);
+  return { posted: true, id: data.id || data.post_id };
+}
+
 // ─── HANDLER ────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
@@ -223,7 +253,15 @@ export default async function handler(req, res) {
     });
     if (!resp.ok) throw new Error(`Supabase insert HTTP ${resp.status}: ${await resp.text()}`);
 
-    return res.status(200).json({ ok: true, arquetipo, slug, titulo: historia.titulo });
+    let facebook = { posted: false };
+    try {
+      facebook = await postToFacebook({ imagenUrl: imagen_url, copyInstagram: historia.copy_instagram, titulo: historia.titulo, slug });
+    } catch (err) {
+      console.error('No se pudo publicar en Facebook (la historia ya quedó guardada en el sitio):', err.message || err);
+      facebook = { posted: false, error: String(err.message || err) };
+    }
+
+    return res.status(200).json({ ok: true, arquetipo, slug, titulo: historia.titulo, facebook });
   } catch (err) {
     console.error('Error generando historia:', err);
     return res.status(500).json({ error: String(err.message || err) });
