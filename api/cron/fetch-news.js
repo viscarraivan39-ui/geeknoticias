@@ -4,8 +4,10 @@
 // vez al día. Busca noticias recientes de varias categorías, las reescribe
 // con Groq (contenido 100% original, no copy-paste, para no tener
 // problemas de "scraped content" con AdSense; si Groq falla, reintenta con
-// NVIDIA NIM), les genera una imagen única con IA (Pollinations, con
-// respaldo en Pexels si falla o tarda), y guarda todo en Supabase.
+// NVIDIA NIM), descarta las que sean semánticamente el mismo hecho que algo
+// ya publicado (embeddings de NVIDIA NIM, aunque la URL fuente sea distinta),
+// les genera una imagen única con IA (Pollinations, con respaldo en Pexels
+// si falla o tarda), y guarda todo en Supabase.
 // También borra las noticias con más de 30 días.
 //
 // ─── VARIABLES DE ENTORNO NECESARIAS (configurar en Vercel) ─────────────
@@ -24,6 +26,7 @@
 // Editor de Supabase para crear la tabla.
 
 import { createHash } from 'node:crypto';
+import { embedTitles, maxSimilarity } from '../../lib/nvidiaEmbed.js';
 
 const CATEGORIES = [
   {
@@ -49,8 +52,11 @@ const CATEGORIES = [
 const MAX_PER_QUERY = 3; // candidatos por búsqueda
 const TARGET_PER_CATEGORY = 4; // tope de noticias a publicar por categoría por corrida (12/día en total)
 const RETENTION_DAYS = 30;
-const CONCURRENCY = 6; // artículos procesados en paralelo, para no pasarse del límite de 60s de Vercel
-const IMAGE_TIMEOUT_MS = 6000;
+const DEDUP_LOOKBACK = 40; // últimos títulos por categoría contra los que se compara semánticamente
+const DEDUP_THRESHOLD = 0.92; // similitud coseno a partir de la cual se considera el mismo hecho
+const CONCURRENCY = 9; // artículos procesados en paralelo, para no pasarse del límite de 60s de Vercel
+const IMAGE_TIMEOUT_MS = 8000;
+const IMAGE_RETRIES = 2; // intentos con Pollinations antes de caer al stock genérico de Pexels (16s tope entre los dos)
 
 function slugify(text) {
   return text
@@ -110,6 +116,16 @@ async function alreadyExists(supabaseUrl, serviceKey, urlHash) {
   return rows.length > 0;
 }
 
+async function getRecentTitles(supabaseUrl, serviceKey, categoria) {
+  const resp = await fetch(
+    `${supabaseUrl}/rest/v1/noticias?categoria=eq.${categoria}&select=titulo&order=publicado_en.desc&limit=${DEDUP_LOOKBACK}`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  );
+  if (!resp.ok) throw new Error(`Supabase HTTP ${resp.status}: ${await resp.text()}`);
+  const rows = await resp.json();
+  return rows.map((r) => r.titulo).filter(Boolean);
+}
+
 async function deleteOldNoticias(supabaseUrl, serviceKey) {
   const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const resp = await fetch(
@@ -147,9 +163,11 @@ Descripción original: ${article.description || ''}
 Devuelve SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
 {"titulo": "...", "resumen": "una frase de 1-2 líneas para la vista previa", "contenido_html": "<p>...</p><h2>...</h2><p>...</p>...", "imagen_prompt": "..."}
 
+El campo "titulo" tiene que ser LLAMATIVO, con la energía de un título de YouTube de MrBeast: genera curiosidad o urgencia real, usa números concretos cuando el dato lo permita, lenguaje directo y con gancho, sin ser plano ni genérico. Ejemplos del tono buscado: "Esto es lo que cambia HOY con el nuevo modelo de OpenAI", "3 datos que nadie te contó sobre...", "Por qué todos están hablando de...". Reglas duras que no podés romper: el título tiene que seguir siendo 100% verdadero respecto al contenido (nada de prometer algo que el artículo no cumple), sin MAYÚSCULAS SOSTENIDAS completas, sin signos de exclamación en exceso, y sin clickbait vacío tipo "no vas a creer lo que pasó" que no diga nada concreto del tema.
+
 El contenido_html debe tener: introducción, 4 subtítulos H2 con desarrollo sustancial cada uno (contexto, detalles, impacto/implicancias, y perspectiva a futuro), y una conclusión. Mínimo 700 palabras. No hagas un simple resumen: expandí cada sección con profundidad real. Sin jerga técnica excesiva ni inventar datos falsos o cifras que no puedas fundamentar en la información dada.
 
-El campo imagen_prompt debe ser una descripción breve EN INGLÉS (máximo 20 palabras) de una imagen editorial fotorrealista que ilustre el tema del artículo, sin texto ni logos ni marcas de agua.`;
+El campo imagen_prompt debe ser una descripción breve EN INGLÉS (máximo 30 palabras) de una imagen editorial fotorrealista y VISUALMENTE ESPECÍFICA al tema exacto de este artículo (nombres de producto/lugar/objeto concretos mencionados en la noticia, no una escena genérica de "tecnología" o "noticias"), sin texto ni logos ni marcas de agua.`;
 }
 
 // Parser tolerante: algunos modelos envuelven el JSON en texto o \`\`\`.
@@ -232,23 +250,36 @@ async function findImagePexels(query) {
   return { imagen_url: photo.src.large, imagen_credito: photo.photographer };
 }
 
+async function tryPollinations(prompt) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
+  try {
+    // seed aleatorio: evita que Pollinations devuelva una imagen cacheada
+    // igual a la de otro artículo con un prompt parecido.
+    const seed = Math.floor(Math.random() * 1e9);
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1200&height=675&nologo=true&seed=${seed}`;
+    const resp = await fetch(url, { signal: controller.signal });
+    if (resp.ok) {
+      resp.body?.cancel?.();
+      return url;
+    }
+    return null;
+  } catch (err) {
+    console.error('Intento de Pollinations falló:', err.message || err);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function findImage(imagenPrompt, fallbackQuery) {
   const prompt = (imagenPrompt || fallbackQuery || '').slice(0, 300);
   if (prompt) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
-    try {
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1200&height=675&nologo=true`;
-      const resp = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeout);
-      if (resp.ok) {
-        resp.body?.cancel?.();
-        return { imagen_url: url, imagen_credito: 'Generada con IA' };
-      }
-    } catch (err) {
-      clearTimeout(timeout);
-      console.error('Pollinations falló, uso Pexels de respaldo:', err.message || err);
+    for (let attempt = 0; attempt < IMAGE_RETRIES; attempt++) {
+      const url = await tryPollinations(prompt);
+      if (url) return { imagen_url: url, imagen_credito: 'Generada con IA' };
     }
+    console.error('Pollinations agotó los reintentos, uso Pexels de respaldo.');
   }
 
   try {
@@ -303,7 +334,7 @@ export default async function handler(req, res) {
     if (!isFirstCategory) await new Promise((r) => setTimeout(r, 1500));
     isFirstCategory = false;
 
-    report[cat.categoria] = { found: 0, inserted: 0, skipped: 0, errors: [] };
+    report[cat.categoria] = { found: 0, inserted: 0, skipped: 0, duplicadosSemanticos: 0, errors: [] };
     try {
       const articles = await fetchCategoryArticles(cat);
       report[cat.categoria].found = articles.length;
@@ -312,6 +343,17 @@ export default async function handler(req, res) {
       report[cat.categoria].errors.push(String(err.message || err));
     }
   }
+
+  // En paralelo (no dentro del loop de arriba, que va secuencial por el rate limit de GNews).
+  await Promise.all(CATEGORIES.map(async (cat) => {
+    try {
+      const recentTitles = await getRecentTitles(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, cat.categoria);
+      cat.existingEmbeddings = await embedTitles(recentTitles);
+    } catch (err) {
+      console.error(`No se pudieron cargar embeddings de "${cat.categoria}", sigo sin dedup semántico:`, err.message || err);
+      cat.existingEmbeddings = [];
+    }
+  }));
 
   await runWithConcurrency(worklist, CONCURRENCY, async ({ cat, article }) => {
     const catReport = report[cat.categoria];
@@ -327,6 +369,20 @@ export default async function handler(req, res) {
       if (catReport.inserted >= TARGET_PER_CATEGORY) return; // recheck tras el await
 
       const rewritten = await rewriteArticle(article);
+
+      try {
+        const [nuevoEmbedding] = await embedTitles([rewritten.titulo]);
+        const similitud = maxSimilarity(nuevoEmbedding, cat.existingEmbeddings || []);
+        if (similitud >= DEDUP_THRESHOLD) {
+          catReport.skipped++;
+          catReport.duplicadosSemanticos++;
+          return;
+        }
+        if (nuevoEmbedding) (cat.existingEmbeddings ||= []).push(nuevoEmbedding);
+      } catch (err) {
+        console.error('Dedup semántico falló, sigo sin bloquear la publicación:', err.message || err);
+      }
+
       const { imagen_url, imagen_credito } = await findImage(rewritten.imagen_prompt, cat.imageFallbackQuery);
       const slugBase = slugify(rewritten.titulo || article.title);
       const slug = `${slugBase}-${urlHash.slice(0, 8)}`;
