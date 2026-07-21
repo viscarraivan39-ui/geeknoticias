@@ -4,7 +4,8 @@
 // vez al día. Busca noticias recientes de varias categorías, las reescribe
 // con Groq (contenido 100% original, no copy-paste, para no tener
 // problemas de "scraped content" con AdSense), les busca una imagen libre
-// de copyright en Pexels, y guarda todo en Supabase.
+// de copyright en Pexels, y guarda todo en Supabase. También borra las
+// noticias con más de 30 días para no acumular contenido viejo.
 //
 // ─── VARIABLES DE ENTORNO NECESARIAS (configurar en Vercel) ─────────────
 //   GNEWS_API_KEY              → cuenta gratis en https://gnews.io
@@ -21,12 +22,29 @@
 import { createHash } from 'node:crypto';
 
 const CATEGORIES = [
-  { categoria: 'ia', query: 'inteligencia artificial', lang: 'es' },
-  { categoria: 'videojuegos', query: 'videojuegos', lang: 'es' },
-  { categoria: 'actualidad', query: 'chile actualidad', lang: 'es' },
+  {
+    categoria: 'ia',
+    queries: ['inteligencia artificial', 'ChatGPT OR OpenAI OR Google DeepMind'],
+    imageQuery: 'artificial intelligence technology',
+    lang: 'es',
+  },
+  {
+    categoria: 'videojuegos',
+    queries: ['videojuegos', 'PlayStation OR Xbox OR Nintendo'],
+    imageQuery: 'video games gaming',
+    lang: 'es',
+  },
+  {
+    categoria: 'actualidad',
+    queries: ['chile actualidad', 'latinoamerica noticias'],
+    imageQuery: 'news current events',
+    lang: 'es',
+  },
 ];
 
-const MAX_PER_CATEGORY = 2; // controla el costo de OpenAI/Pexels por corrida
+const MAX_PER_QUERY = 4; // candidatos por búsqueda; con 2 búsquedas x 3 categorías, ~24 candidatos/día
+const TARGET_PER_CATEGORY = 4; // tope de noticias a publicar por categoría por corrida (12/día en total)
+const RETENTION_DAYS = 30;
 
 function slugify(text) {
   return text
@@ -41,11 +59,11 @@ function hashUrl(url) {
   return createHash('sha256').update(url).digest('hex');
 }
 
-async function fetchCategoryArticles({ query, lang }) {
+async function fetchQueryArticles(query, lang) {
   const url = new URL('https://gnews.io/api/v4/search');
   url.searchParams.set('q', query);
   url.searchParams.set('lang', lang);
-  url.searchParams.set('max', String(MAX_PER_CATEGORY));
+  url.searchParams.set('max', String(MAX_PER_QUERY));
   url.searchParams.set('apikey', process.env.GNEWS_API_KEY);
 
   const resp = await fetch(url);
@@ -54,6 +72,22 @@ async function fetchCategoryArticles({ query, lang }) {
   }
   const data = await resp.json();
   return Array.isArray(data.articles) ? data.articles : [];
+}
+
+async function fetchCategoryArticles({ queries, lang }) {
+  const seen = new Set();
+  const all = [];
+  for (const query of queries) {
+    const articles = await fetchQueryArticles(query, lang);
+    for (const article of articles) {
+      if (article.url && !seen.has(article.url)) {
+        seen.add(article.url);
+        all.push(article);
+      }
+    }
+    await new Promise((r) => setTimeout(r, 1200)); // evita el rate limit de GNews
+  }
+  return all;
 }
 
 async function alreadyExists(supabaseUrl, serviceKey, urlHash) {
@@ -66,8 +100,17 @@ async function alreadyExists(supabaseUrl, serviceKey, urlHash) {
   return rows.length > 0;
 }
 
+async function deleteOldNoticias(supabaseUrl, serviceKey) {
+  const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const resp = await fetch(
+    `${supabaseUrl}/rest/v1/noticias?publicado_en=lt.${encodeURIComponent(cutoff)}`,
+    { method: 'DELETE', headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  );
+  if (!resp.ok) throw new Error(`Supabase delete HTTP ${resp.status}: ${await resp.text()}`);
+}
+
 async function rewriteWithGroq(article) {
-  const prompt = `Actúa como un redactor senior de tecnología y actualidad. Reescribe totalmente la siguiente noticia con tus propias palabras (no copies frases del original), integrando un breve análisis propio, en español, tono informativo y atractivo.
+  const prompt = `Actúa como un redactor senior de tecnología y actualidad, especializado en artículos extensos y bien documentados para un medio digital serio. Reescribe totalmente la siguiente noticia con tus propias palabras (no copies frases del original ni la resumas superficialmente), ampliando con contexto, antecedentes relevantes, posibles implicancias y comparaciones cuando corresponda, en español, tono informativo y atractivo.
 
 Título original: ${article.title}
 Descripción original: ${article.description || ''}
@@ -75,7 +118,7 @@ Descripción original: ${article.description || ''}
 Devuelve SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
 {"titulo": "...", "resumen": "una frase de 1-2 líneas para la vista previa", "contenido_html": "<p>...</p><h2>...</h2><p>...</p>..."}
 
-El contenido_html debe tener: introducción breve, 2-3 subtítulos H2 con su desarrollo, y una conclusión. Mínimo 400 palabras. Sin jerga técnica excesiva.`;
+El contenido_html debe tener: introducción, 4 subtítulos H2 con desarrollo sustancial cada uno (contexto, detalles, impacto/implicancias, y perspectiva a futuro), y una conclusión. Mínimo 700 palabras. No hagas un simple resumen: expandí cada sección con profundidad real. Sin jerga técnica excesiva ni inventar datos falsos o cifras que no puedas fundamentar en la información dada.`;
 
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -140,6 +183,12 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'No hay Supabase conectado (faltan SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).' });
   }
 
+  try {
+    await deleteOldNoticias(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  } catch (err) {
+    console.error('Error borrando noticias viejas:', err);
+  }
+
   const report = {};
   let inserted = 0;
   let isFirstCategory = true;
@@ -159,6 +208,7 @@ export default async function handler(req, res) {
     }
 
     for (const article of articles) {
+      if (report[cat.categoria].inserted >= TARGET_PER_CATEGORY) break;
       if (!article.url || !article.title) continue;
       const urlHash = hashUrl(article.url);
 
@@ -169,7 +219,7 @@ export default async function handler(req, res) {
         }
 
         const rewritten = await rewriteWithGroq(article);
-        const { imagen_url, imagen_credito } = await findImage(cat.query);
+        const { imagen_url, imagen_credito } = await findImage(cat.imageQuery);
         const slugBase = slugify(rewritten.titulo || article.title);
         const slug = `${slugBase}-${urlHash.slice(0, 8)}`;
 

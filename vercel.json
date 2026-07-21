@@ -2,6 +2,9 @@
   "crons": [
     { "path": "/api/cron/fetch-news", "schedule": "0 13 * * *" }
   ],
+  "functions": {
+    "api/cron/fetch-news.js": { "maxDuration": 60 }
+  },
   "rewrites": [
     { "source": "/noticia/:slug", "destination": "/api/noticia/:slug" }
   ],
