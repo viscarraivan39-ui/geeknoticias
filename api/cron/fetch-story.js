@@ -160,7 +160,7 @@ Reglas duras, no negociables:
 Devolvé SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
 {"titulo": "...", "resumen": "1-2 líneas para la vista previa", "contenido_html": "<p>...</p><p>...</p>...", "copy_instagram": "...", "imagen_prompt": "...", "imagen_prompt_2": "..."}
 
-- "contenido_html": el relato completo, 7-9 párrafos en <p> — empezá presentando a los personajes y el contexto (2-3 párrafos), desarrollá el conflicto o el momento central (3-4 párrafos), y cerrá con una reflexión (sin ser un CTA de venta).
+- "contenido_html": el relato completo, MÍNIMO 700 palabras (no menos), en 7-9 párrafos <p> de al menos 70-90 palabras cada uno — empezá presentando a los personajes y el contexto (2-3 párrafos), desarrollá el conflicto o el momento central (3-4 párrafos), y cerrá con una reflexión (sin ser un CTA de venta). Un relato corto de 3-4 párrafos NO cumple la consigna.
 - "copy_instagram": versión adaptada para Facebook/Instagram — primera línea como gancho fuerte, párrafos cortos fáciles de leer en el feed, y termina con una pregunta que invite a comentar. Máximo 900 caracteres.
 - "imagen_prompt": descripción EN INGLÉS (máx. 35 palabras) de una imagen cinematográfica, hiperrealista en su textura pero con UN elemento sutil onírico/surrealista que conecte con la historia (ej: luces flotando, siluetas de luz). Sin texto, sin logos, sin marcas de agua.
 - "imagen_prompt_2": descripción EN INGLÉS (máx. 35 palabras) de una SEGUNDA imagen que muestre un momento o detalle distinto de la misma historia (no la misma escena que imagen_prompt), mismo estilo cinematográfico/onírico. Sin texto, sin logos, sin marcas de agua.`;
@@ -188,7 +188,7 @@ Reglas duras, no negociables:
 Devolvé SOLO un JSON válido (sin markdown, sin \`\`\`) con esta forma exacta:
 {"titulo": "...", "resumen": "1-2 líneas para la vista previa", "contenido_html": "<p>...</p><p>...</p>...", "copy_instagram": "...", "imagen_prompt": "...", "imagen_prompt_2": "..."}
 
-- "contenido_html": la crónica completa, 7-9 párrafos en <p> — presentá primero al protagonista y el contexto (2-3 párrafos), después desarrollá el hecho central (3-4 párrafos), y cerrá con una reflexión (sin CTA de venta).
+- "contenido_html": la crónica completa, MÍNIMO 700 palabras (no menos), en 7-9 párrafos <p> de al menos 70-90 palabras cada uno — presentá primero al protagonista y el contexto (2-3 párrafos), después desarrollá el hecho central (3-4 párrafos), y cerrá con una reflexión (sin CTA de venta). Una crónica corta de 3-4 párrafos NO cumple la consigna.
 - "copy_instagram": versión adaptada para Facebook — primera línea como gancho fuerte, párrafos cortos, y termina con una pregunta que invite a comentar. Máximo 900 caracteres.
 - "imagen_prompt": descripción EN INGLÉS (máx. 35 palabras) de una ILUSTRACIÓN DIGITAL de estilo surrealista/pictórico, para que se note que es una interpretación artística y no una fotografía del hecho real. Sin texto, sin logos, sin marcas de agua.
 - "imagen_prompt_2": descripción EN INGLÉS (máx. 35 palabras) de una SEGUNDA ilustración, mismo estilo surrealista/pictórico, mostrando un momento o detalle distinto de la misma crónica (no la misma escena que imagen_prompt). Sin texto, sin logos, sin marcas de agua.`;
@@ -214,6 +214,7 @@ async function writeWithGroq(prompt) {
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       temperature: 0.9,
+      max_tokens: 3000,
     }),
   });
   if (!resp.ok) throw new Error(`Groq HTTP ${resp.status}: ${await resp.text()}`);
@@ -231,7 +232,7 @@ async function writeWithNvidia(prompt) {
       model: 'meta/llama-3.3-70b-instruct',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.9,
-      max_tokens: 2000,
+      max_tokens: 3000,
     }),
   });
   if (!resp.ok) throw new Error(`NVIDIA NIM HTTP ${resp.status}: ${await resp.text()}`);
