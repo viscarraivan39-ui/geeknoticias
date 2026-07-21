@@ -22,6 +22,8 @@ export default async function handler(req, res) {
 
   const url = new URL(`${SUPABASE_URL}/rest/v1/noticias`);
   url.searchParams.set('select', 'slug,categoria,titulo,resumen,imagen_url,imagen_credito,fuente_nombre,publicado_en');
+  // Solo noticias cuya hora de publicación (escalonada por fetch-news.js) ya llegó.
+  url.searchParams.set('publicado_en', `lte.${new Date().toISOString()}`);
   url.searchParams.set('order', 'publicado_en.desc');
   url.searchParams.set('limit', String(limit));
   url.searchParams.set('offset', String(offset));

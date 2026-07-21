@@ -18,6 +18,7 @@ export default async function handler(req, res) {
     try {
       const url = new URL(`${SUPABASE_URL}/rest/v1/noticias`);
       url.searchParams.set('select', 'slug,publicado_en');
+      url.searchParams.set('publicado_en', `lte.${new Date().toISOString()}`);
       url.searchParams.set('order', 'publicado_en.desc');
       url.searchParams.set('limit', '1000');
 

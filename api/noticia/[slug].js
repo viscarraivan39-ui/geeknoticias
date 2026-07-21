@@ -279,7 +279,7 @@ export default async function handler(req, res) {
     const rows = await resp.json();
     const noticia = rows[0];
 
-    if (!noticia) {
+    if (!noticia || new Date(noticia.publicado_en) > new Date()) {
       res.status(404);
       return res.send('Noticia no encontrada.');
     }
@@ -290,6 +290,7 @@ export default async function handler(req, res) {
       relatedUrl.searchParams.set('select', 'slug,titulo');
       relatedUrl.searchParams.set('categoria', `eq.${noticia.categoria}`);
       relatedUrl.searchParams.set('slug', `neq.${noticia.slug}`);
+      relatedUrl.searchParams.set('publicado_en', `lte.${new Date().toISOString()}`);
       relatedUrl.searchParams.set('order', 'publicado_en.desc');
       relatedUrl.searchParams.set('limit', '4');
       const relatedResp = await fetch(relatedUrl, {

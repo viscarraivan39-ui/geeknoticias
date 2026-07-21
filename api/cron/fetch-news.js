@@ -8,6 +8,19 @@
 // ya publicado (embeddings de NVIDIA NIM, aunque la URL fuente sea distinta),
 // les genera una imagen única con IA (Pollinations, con respaldo en Pexels
 // si falla o tarda), y guarda todo en Supabase.
+//
+// La cantidad total de noticias por día varía entre DAILY_MIN y DAILY_MAX
+// (sembrado por fecha, no verdaderamente aleatorio cada corrida), y cada una
+// se guarda con su `publicado_en` escalonado PUBLISH_STAGGER_MIN minutos
+// después de la anterior — así en el sitio aparecen goteando durante el día
+// en vez de todas juntas apenas corre el cron. El listado (/api/noticias)
+// filtra por publicado_en <= ahora, así que las que tienen fecha futura
+// todavía no se muestran aunque ya estén guardadas en la base.
+//
+// Vercel Cron en el plan Hobby solo permite una corrida por día, por eso el
+// escalonado se resuelve así (con timestamps futuros + filtro de lectura) en
+// vez de programar un cron cada 30 minutos.
+//
 // También borra las noticias con más de 30 días.
 //
 // ─── VARIABLES DE ENTORNO NECESARIAS (configurar en Vercel) ─────────────
@@ -50,7 +63,9 @@ const CATEGORIES = [
 ];
 
 const MAX_PER_QUERY = 3; // candidatos por búsqueda
-const TARGET_PER_CATEGORY = 4; // tope de noticias a publicar por categoría por corrida (12/día en total)
+const DAILY_MIN = 5; // total de noticias a publicar por día, mínimo
+const DAILY_MAX = 10; // total de noticias a publicar por día, máximo
+const PUBLISH_STAGGER_MIN = 30; // minutos de separación entre la hora de publicación de cada noticia
 const RETENTION_DAYS = 30;
 const DEDUP_LOOKBACK = 40; // últimos títulos por categoría contra los que se compara semánticamente
 const DEDUP_THRESHOLD = 0.92; // similitud coseno a partir de la cual se considera el mismo hecho
@@ -58,6 +73,40 @@ const CONCURRENCY = 9; // artículos procesados en paralelo, para no pasarse del
 const IMAGE_CONCURRENCY = 3; // Pollinations (gratis) rechaza ráfagas grandes desde la misma IP; se limita aparte del resto
 const IMAGE_TIMEOUT_MS = 8000;
 const IMAGE_RETRIES = 2; // intentos con Pollinations antes de caer al stock genérico de Pexels (16s tope entre los dos)
+
+// RNG determinístico (mulberry32) sembrado con la fecha del día, para que si
+// el cron corre dos veces el mismo día (reintento) el total no cambie.
+function seededRandom(seedStr) {
+  let h = 1779033703 ^ seedStr.length;
+  for (let i = 0; i < seedStr.length; i++) {
+    h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return function () {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  };
+}
+
+function dailyTarget() {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const rand = seededRandom(today);
+  return DAILY_MIN + Math.floor(rand() * (DAILY_MAX - DAILY_MIN + 1));
+}
+
+// Reparte el total del día entre las categorías lo más parejo posible.
+function splitTargetByCategory(total, categories) {
+  const base = Math.floor(total / categories.length);
+  let remainder = total - base * categories.length;
+  const result = {};
+  for (const cat of categories) {
+    result[cat.categoria] = base + (remainder > 0 ? 1 : 0);
+    if (remainder > 0) remainder--;
+  }
+  return result;
+}
 
 function slugify(text) {
   return text
@@ -342,6 +391,11 @@ export default async function handler(req, res) {
     console.error('Error borrando noticias viejas:', err);
   }
 
+  const metaDiaria = dailyTarget();
+  const targetByCategory = splitTargetByCategory(metaDiaria, CATEGORIES);
+  const runStart = Date.now();
+  let publishIndex = 0; // se incrementa sin await de por medio, no hace falta lock
+
   const report = {};
   let inserted = 0;
   const worklist = [];
@@ -374,7 +428,8 @@ export default async function handler(req, res) {
 
   await runWithConcurrency(worklist, CONCURRENCY, async ({ cat, article }) => {
     const catReport = report[cat.categoria];
-    if (catReport.inserted >= TARGET_PER_CATEGORY) return;
+    const catTarget = targetByCategory[cat.categoria];
+    if (catReport.inserted >= catTarget) return;
     if (!article.url || !article.title) return;
     const urlHash = hashUrl(article.url);
 
@@ -383,7 +438,7 @@ export default async function handler(req, res) {
         catReport.skipped++;
         return;
       }
-      if (catReport.inserted >= TARGET_PER_CATEGORY) return; // recheck tras el await
+      if (catReport.inserted >= catTarget) return; // recheck tras el await
 
       const rewritten = await rewriteArticle(article);
 
@@ -404,6 +459,11 @@ export default async function handler(req, res) {
       const slugBase = slugify(rewritten.titulo || article.title);
       const slug = `${slugBase}-${urlHash.slice(0, 8)}`;
 
+      // Escalonado: cada noticia "aparece" 30 min después de la anterior en vez
+      // de publicarse todas apenas termina de procesarlas el cron.
+      const publishAt = new Date(runStart + publishIndex * PUBLISH_STAGGER_MIN * 60000).toISOString();
+      publishIndex++;
+
       const wasInserted = await saveNoticia(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
         slug,
         categoria: cat.categoria,
@@ -415,6 +475,7 @@ export default async function handler(req, res) {
         fuente_nombre: article.source && article.source.name,
         fuente_url: article.url,
         fuente_url_hash: urlHash,
+        publicado_en: publishAt,
       });
 
       if (wasInserted) {
@@ -429,5 +490,5 @@ export default async function handler(req, res) {
     }
   });
 
-  return res.status(200).json({ ok: true, inserted, report, updatedAt: new Date().toISOString() });
+  return res.status(200).json({ ok: true, inserted, metaDiaria, targetByCategory, report, updatedAt: new Date().toISOString() });
 }
