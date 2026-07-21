@@ -1,12 +1,15 @@
 {
   "crons": [
-    { "path": "/api/cron/fetch-news", "schedule": "0 13 * * *" }
+    { "path": "/api/cron/fetch-news", "schedule": "0 13 * * *" },
+    { "path": "/api/cron/fetch-story", "schedule": "0 23 * * *" }
   ],
   "functions": {
-    "api/cron/fetch-news.js": { "maxDuration": 60 }
+    "api/cron/fetch-news.js": { "maxDuration": 60 },
+    "api/cron/fetch-story.js": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/noticia/:slug", "destination": "/api/noticia/:slug" },
+    { "source": "/historia/:slug", "destination": "/api/historia/:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap.xml" }
   ],
   "headers": [

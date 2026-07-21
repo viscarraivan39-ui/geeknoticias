@@ -14,6 +14,7 @@ export default async function handler(req, res) {
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   let noticias = [];
+  let historias = [];
   if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
     try {
       const url = new URL(`${SUPABASE_URL}/rest/v1/noticias`);
@@ -29,10 +30,25 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error('Error generando sitemap:', err);
     }
+
+    try {
+      const url = new URL(`${SUPABASE_URL}/rest/v1/historias`);
+      url.searchParams.set('select', 'slug,publicado_en');
+      url.searchParams.set('order', 'publicado_en.desc');
+      url.searchParams.set('limit', '500');
+
+      const resp = await fetch(url, {
+        headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+      });
+      if (resp.ok) historias = await resp.json();
+    } catch (err) {
+      console.error('Error generando sitemap de historias:', err);
+    }
   }
 
   const staticUrls = [
     { loc: `${SITE}/`, changefreq: 'hourly', priority: '1.0' },
+    { loc: `${SITE}/historias.html`, changefreq: 'daily', priority: '0.6' },
     { loc: `${SITE}/privacidad.html`, changefreq: 'monthly', priority: '0.3' },
     { loc: `${SITE}/terminos.html`, changefreq: 'monthly', priority: '0.3' },
   ];
@@ -44,7 +60,14 @@ export default async function handler(req, res) {
     priority: '0.8',
   }));
 
-  const allUrls = [...staticUrls, ...noticiaUrls];
+  const historiaUrls = historias.map((h) => ({
+    loc: `${SITE}/historia/${encodeURIComponent(h.slug)}`,
+    lastmod: h.publicado_en,
+    changefreq: 'monthly',
+    priority: '0.5',
+  }));
+
+  const allUrls = [...staticUrls, ...noticiaUrls, ...historiaUrls];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

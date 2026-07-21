@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historias — GeekNoticias</title>
+<meta name="description" content="Historias narrativas e inspiracionales escritas por Bastián, el cronista de GeekNoticias. Contenido narrativo generado con IA, no noticias verificadas.">
+<link rel="canonical" href="https://geeknoticias.com/historias.html">
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5927579839118584"
+     crossorigin="anonymous"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
+    --border:#e7e7e9; --accent:#7c3aed; --accent-soft:rgba(124,58,237,0.1); --chip-bg:#f4f4f5; --footer-bg:#111111; --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#111111; --card-bg:#18181b; --text:#c9c9cc; --text-dim:#8b8b93; --title:#f4f4f5;
+      --border:#2a2a2e; --accent:#b794f6; --accent-soft:rgba(183,148,246,0.14); --chip-bg:#232327;
+    }
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing:antialiased;}
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  header{position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--border);}
+  .header__inner{max-width:1180px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;}
+  .logo{font-size:19px; font-weight:800; letter-spacing:-0.02em;}
+  .logo .dot{color:var(--accent);}
+  .header__inner nav a{font-size:13px; font-weight:600; color:var(--text-dim);}
+
+  .hero{max-width:1180px; margin:0 auto; padding:48px 20px 8px; animation:fadeUp .5s ease both;}
+  .hero h1{font-family:'Playfair Display', serif; font-style:italic; font-size:clamp(28px,4.4vw,42px); font-weight:600; line-height:1.1; margin:0 0 10px; color:var(--title);}
+  .hero p{color:var(--text-dim); font-size:15px; margin:0 0 4px; max-width:60ch;}
+  .aviso{font-size:12.5px; color:var(--accent); font-weight:600;}
+
+  .section{max-width:1180px; margin:0 auto; padding:26px 20px 60px;}
+  .grid{display:grid; gap:22px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));}
+  .empty{grid-column:1/-1; text-align:center; padding:40px 20px; color:var(--text-dim); font-size:14px;}
+
+  .card{background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; box-shadow:0 1px 2px rgba(0,0,0,0.04); transition:transform .2s ease, box-shadow .2s ease; opacity:0; transform:translateY(14px); animation:fadeUp .45s ease forwards; animation-delay:calc(var(--i, 0) * 60ms);}
+  .card:hover{transform:translateY(-4px); box-shadow:0 14px 30px rgba(0,0,0,0.09);}
+  .card:hover .card__media img{transform:scale(1.05);}
+  .card__media{aspect-ratio:16/9; background:var(--chip-bg); overflow:hidden;}
+  .card__media img{width:100%; height:100%; object-fit:cover; transition:transform .5s ease;}
+  .card__body{padding:16px 18px 18px; display:flex; flex-direction:column; gap:9px; flex:1;}
+  .card__cat{font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); background:var(--accent-soft); display:inline-block; padding:3px 9px; border-radius:5px; width:fit-content;}
+  .card__title{font-family:'Playfair Display', serif; font-style:italic; font-size:18px; font-weight:600; line-height:1.35; color:var(--title);}
+  .card__resumen{font-size:13.5px; color:var(--text-dim); line-height:1.5;}
+
+  footer{background:var(--footer-bg); color:rgba(255,255,255,0.55); padding:30px 20px; text-align:center; font-size:12.5px; margin-top:24px;}
+  footer a{color:rgba(255,255,255,0.8);}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="header__inner">
+    <a class="logo" href="/">Geek<span class="dot">Noticias</span></a>
+    <nav><a href="/">← Noticias</a></nav>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Historias</h1>
+  <p>Relatos narrativos escritos por Bastián, el cronista de GeekNoticias.</p>
+  <div class="aviso">Contenido inspiracional generado con IA — no son noticias verificadas.</div>
+</div>
+
+<div class="section">
+  <div class="grid" id="grid">
+    <div class="empty">Cargando historias…</div>
+  </div>
+</div>
+
+<footer>© <span id="year"></span> GeekNoticias · <a href="/privacidad.html">Privacidad</a> · <a href="/terminos.html">Términos</a></footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+const grid = document.getElementById('grid');
+
+function cardHtml(h, i) {
+  const fecha = new Date(h.publicado_en).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+  const img = h.imagen_url ? `<img src="${h.imagen_url}" alt="" loading="lazy">` : '';
+  return `<a class="card" style="--i:${i}" href="/historia/${encodeURIComponent(h.slug)}">
+    <div class="card__media">${img}</div>
+    <div class="card__body">
+      <span class="card__cat">${h.arquetipo}</span>
+      <div class="card__title">${h.titulo}</div>
+      <div class="card__resumen">${h.resumen}</div>
+    </div>
+  </a>`;
+}
+
+fetch('/api/historias')
+  .then((r) => r.json())
+  .then(({ historias }) => {
+    grid.innerHTML = (historias && historias.length)
+      ? historias.map((h, i) => cardHtml(h, i)).join('')
+      : '<div class="empty">Todavía no hay historias publicadas. Volvé pronto.</div>';
+  })
+  .catch(() => { grid.innerHTML = '<div class="empty">No se pudieron cargar las historias.</div>'; });
+</script>
+</body>
+</html>
