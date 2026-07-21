@@ -6,7 +6,8 @@
     "api/cron/fetch-news.js": { "maxDuration": 60 }
   },
   "rewrites": [
-    { "source": "/noticia/:slug", "destination": "/api/noticia/:slug" }
+    { "source": "/noticia/:slug", "destination": "/api/noticia/:slug" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap.xml" }
   ],
   "headers": [
     {
