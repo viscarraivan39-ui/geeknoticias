@@ -78,6 +78,10 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
 
   @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
 
+  .ticker{background:var(--footer-bg); overflow:hidden;}
+  .ticker__inner{max-width:760px; margin:0 auto; padding:7px 20px; display:flex; gap:22px; flex-wrap:wrap; font-family:'JetBrains Mono', monospace; font-size:11.5px; color:rgba(255,255,255,0.75);}
+  .ticker__item b{color:#fff; margin-right:5px;}
+
   header{background:color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter:blur(10px); position:sticky; top:0; z-index:10; border-bottom:1px solid var(--border); padding:18px 20px;}
   header .inner{max-width:760px; margin:0 auto; display:flex; align-items:center; justify-content:space-between;}
   .logo{font-size:18px; font-weight:800; letter-spacing:-0.02em;}
@@ -110,6 +114,9 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
   .comentario__texto{font-size:14px; line-height:1.5; color:var(--text);}
   .comentarios__vacio{font-size:13.5px; color:var(--text-dim); margin-bottom:24px;}
   .comentarios__form{display:flex; flex-direction:column; gap:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+  .comentarios__form-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .comentarios__form-row input{flex:1 1 180px;}
+  .comentarios__form-hint{font-size:11.5px; color:var(--text-dim); margin-top:-4px;}
   .comentarios__form input, .comentarios__form textarea{font-family:'Inter', sans-serif; font-size:14px; border:1px solid var(--border); border-radius:8px; padding:10px 12px; outline:0; background:var(--bg); color:var(--text); resize:vertical;}
   .comentarios__form input:focus, .comentarios__form textarea:focus{border-color:var(--accent);}
   .comentarios__form button{align-self:flex-start; border:0; background:var(--accent); color:#fff; font-weight:700; font-size:14px; padding:10px 22px; border-radius:999px; cursor:pointer; transition:opacity .15s ease;}
@@ -127,6 +134,7 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
 </style>
 </head>
 <body>
+<div class="ticker" id="ticker"><div class="ticker__inner" id="tickerInner">Cargando indicadores…</div></div>
 <header><div class="inner"><a class="logo" href="/">Geek<span class="dot">Noticias</span></a><a href="/">← Todas las noticias</a></div></header>
 <main>
   <span class="cat">${escapeHtml(categoriaLabel)}</span>
@@ -143,7 +151,11 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
     <div class="comentarios__lista" id="comentariosLista"><div class="comentarios__vacio">Cargando comentarios…</div></div>
     <form class="comentarios__form" id="comentariosForm">
       <p style="position:absolute; left:-9999px;" aria-hidden="true"><label>Empresa: <input name="empresa" tabindex="-1" autocomplete="off"></label></p>
-      <input type="text" name="nombre" placeholder="Tu nombre" maxlength="40" required>
+      <div class="comentarios__form-row">
+        <input type="text" name="nombre" placeholder="Alias" maxlength="40" required>
+        <input type="email" name="email" placeholder="tu@correo.com" required>
+      </div>
+      <div class="comentarios__form-hint">Tu correo no se muestra públicamente — solo se pide como filtro contra spam.</div>
       <textarea name="texto" placeholder="Escribí tu comentario…" rows="3" maxlength="600" required></textarea>
       <button type="submit">Comentar</button>
       <div class="comentarios__msg" id="comentariosMsg"></div>
@@ -158,6 +170,29 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
   const lista = document.getElementById('comentariosLista');
   const form = document.getElementById('comentariosForm');
   const msg = document.getElementById('comentariosMsg');
+
+  const CLP = (v) => Math.round(v).toLocaleString('es-CL');
+  fetch('/api/indicadores')
+    .then((r) => r.json())
+    .then(({ indicadores }) => {
+      if (!indicadores) throw new Error('sin datos');
+      const partes = [];
+      if (indicadores.dolar) partes.push('<span class="ticker__item"><b>USD</b>$' + CLP(indicadores.dolar.valor) + '</span>');
+      if (indicadores.cobre) partes.push('<span class="ticker__item"><b>Cobre</b>US$' + indicadores.cobre.valor.toFixed(2) + '/lb</span>');
+      if (indicadores.uf) partes.push('<span class="ticker__item"><b>UF</b>$' + CLP(indicadores.uf.valor) + '</span>');
+      if (indicadores.utm) partes.push('<span class="ticker__item"><b>UTM</b>$' + CLP(indicadores.utm.valor) + '</span>');
+      if (indicadores.bitcoin) partes.push('<span class="ticker__item"><b>BTC</b>$' + CLP(indicadores.bitcoin.valor) + '</span>');
+      document.getElementById('tickerInner').innerHTML = partes.join('') || 'Indicadores no disponibles.';
+    })
+    .catch(() => { document.getElementById('ticker').style.display = 'none'; });
+
+  try {
+    const identidad = JSON.parse(localStorage.getItem('gn_comment_identity') || 'null');
+    if (identidad) {
+      form.querySelector('[name="nombre"]').value = identidad.nombre || '';
+      form.querySelector('[name="email"]').value = identidad.email || '';
+    }
+  } catch {}
 
   function escapeHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -186,6 +221,7 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nombre = form.querySelector('[name="nombre"]').value;
+    const email = form.querySelector('[name="email"]').value;
     const texto = form.querySelector('[name="texto"]').value;
     const empresa = form.querySelector('[name="empresa"]').value;
     const btn = form.querySelector('button');
@@ -195,11 +231,12 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
       const resp = await fetch('/api/comentarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: SLUG, nombre, texto, empresa }),
+        body: JSON.stringify({ slug: SLUG, nombre, email, texto, empresa }),
       });
       const data = await resp.json();
       if (resp.ok) {
-        form.reset();
+        try { localStorage.setItem('gn_comment_identity', JSON.stringify({ nombre, email })); } catch {}
+        form.querySelector('[name="texto"]').value = '';
         await cargarComentarios();
       } else {
         msg.textContent = data.error || 'No se pudo publicar el comentario.';

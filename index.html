@@ -33,6 +33,10 @@
   @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
   @keyframes loadingBar{ 0%{transform:translateX(-100%);} 50%{transform:translateX(0);} 100%{transform:translateX(100%);} }
 
+  .ticker{background:var(--footer-bg); overflow:hidden;}
+  .ticker__inner{max-width:1180px; margin:0 auto; padding:7px 20px; display:flex; gap:22px; flex-wrap:wrap; font-family:'JetBrains Mono', monospace; font-size:11.5px; color:rgba(255,255,255,0.75);}
+  .ticker__item b{color:#fff; margin-right:5px;}
+
   header{position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); transition:box-shadow .25s ease;}
   header.scrolled{box-shadow:0 4px 20px rgba(0,0,0,0.06);}
   header .loadbar{position:absolute; left:0; bottom:-1px; height:2px; width:40%; background:var(--accent); opacity:0; transform:translateX(-100%);}
@@ -121,6 +125,10 @@
 </style>
 </head>
 <body>
+<div class="ticker" id="ticker">
+  <div class="ticker__inner" id="tickerInner">Cargando indicadores…</div>
+</div>
+
 <header>
   <div class="header__inner">
     <a class="logo" href="/">Geek<span class="dot">Noticias</span></a>
@@ -170,6 +178,21 @@
 
 <script>
 document.getElementById('year').textContent = new Date().getFullYear();
+
+const CLP = (n) => Math.round(n).toLocaleString('es-CL');
+fetch('/api/indicadores')
+  .then((r) => r.json())
+  .then(({ indicadores }) => {
+    if (!indicadores) throw new Error('sin datos');
+    const partes = [];
+    if (indicadores.dolar) partes.push('<span class="ticker__item"><b>USD</b>$' + CLP(indicadores.dolar.valor) + '</span>');
+    if (indicadores.cobre) partes.push('<span class="ticker__item"><b>Cobre</b>US$' + indicadores.cobre.valor.toFixed(2) + '/lb</span>');
+    if (indicadores.uf) partes.push('<span class="ticker__item"><b>UF</b>$' + CLP(indicadores.uf.valor) + '</span>');
+    if (indicadores.utm) partes.push('<span class="ticker__item"><b>UTM</b>$' + CLP(indicadores.utm.valor) + '</span>');
+    if (indicadores.bitcoin) partes.push('<span class="ticker__item"><b>BTC</b>$' + CLP(indicadores.bitcoin.valor) + '</span>');
+    document.getElementById('tickerInner').innerHTML = partes.join('') || 'Indicadores no disponibles.';
+  })
+  .catch(() => { document.getElementById('ticker').style.display = 'none'; });
 
 const headerEl = document.querySelector('header');
 const totopBtn = document.getElementById('totop');

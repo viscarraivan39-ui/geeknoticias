@@ -55,6 +55,7 @@ const RETENTION_DAYS = 30;
 const DEDUP_LOOKBACK = 40; // últimos títulos por categoría contra los que se compara semánticamente
 const DEDUP_THRESHOLD = 0.92; // similitud coseno a partir de la cual se considera el mismo hecho
 const CONCURRENCY = 9; // artículos procesados en paralelo, para no pasarse del límite de 60s de Vercel
+const IMAGE_CONCURRENCY = 3; // Pollinations (gratis) rechaza ráfagas grandes desde la misma IP; se limita aparte del resto
 const IMAGE_TIMEOUT_MS = 8000;
 const IMAGE_RETRIES = 2; // intentos con Pollinations antes de caer al stock genérico de Pexels (16s tope entre los dos)
 
@@ -303,6 +304,22 @@ async function runWithConcurrency(items, limit, worker) {
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runner));
 }
 
+// Limita cuántas llamadas a `fn` corren al mismo tiempo, independiente de la
+// concurrencia general de artículos (para no saturar la API gratuita de Pollinations).
+function createLimiter(limit) {
+  let active = 0;
+  const queue = [];
+  const next = () => {
+    if (active >= limit || queue.length === 0) return;
+    active++;
+    const { fn, resolve, reject } = queue.shift();
+    fn().then(resolve, reject).finally(() => { active--; next(); });
+  };
+  return (fn) => new Promise((resolve, reject) => { queue.push({ fn, resolve, reject }); next(); });
+}
+
+const limitImageCalls = createLimiter(IMAGE_CONCURRENCY);
+
 export default async function handler(req, res) {
   const authHeader = req.headers.authorization;
   const isVercelCron = authHeader === `Bearer ${process.env.CRON_SECRET}`;
@@ -383,7 +400,7 @@ export default async function handler(req, res) {
         console.error('Dedup semántico falló, sigo sin bloquear la publicación:', err.message || err);
       }
 
-      const { imagen_url, imagen_credito } = await findImage(rewritten.imagen_prompt, cat.imageFallbackQuery);
+      const { imagen_url, imagen_credito } = await limitImageCalls(() => findImage(rewritten.imagen_prompt, cat.imageFallbackQuery));
       const slugBase = slugify(rewritten.titulo || article.title);
       const slug = `${slugBase}-${urlHash.slice(0, 8)}`;
 

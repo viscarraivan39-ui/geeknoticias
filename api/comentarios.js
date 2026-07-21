@@ -1,7 +1,11 @@
 // /api/comentarios.js
 //
 // GET  ?slug=xxx        -> lista los comentarios de una noticia
-// POST { slug, nombre, texto, empresa } -> publica un comentario nuevo
+// POST { slug, nombre, email, texto, empresa } -> publica un comentario nuevo
+//
+// El correo es obligatorio pero NUNCA se devuelve en el GET (queda solo en
+// Supabase) — no hay verificación por email, es solo una fricción extra
+// contra spam. El "nombre" funciona como alias público.
 //
 // Sin panel de moderación: se publica al toque, protegido con rate limit +
 // honeypot + validación de longitud. Si hay abuso, se borran filas a mano
@@ -13,6 +17,7 @@ const NOMBRE_MAX = 40;
 const TEXTO_MAX = 600;
 const TEXTO_MIN = 3;
 const URL_RE = /https?:\/\/|www\./i;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default async function handler(req, res) {
   if (!(await rateLimit(req, res, { limit: 20, windowSeconds: 60, blockSeconds: 300 }))) return;
@@ -62,10 +67,12 @@ export default async function handler(req, res) {
 
     const slug = String(body.slug || '').trim();
     const nombre = String(body.nombre || '').trim().slice(0, NOMBRE_MAX);
+    const email = String(body.email || '').trim().toLowerCase();
     const texto = String(body.texto || '').trim().slice(0, TEXTO_MAX);
 
     if (!slug) return res.status(400).json({ error: 'Falta la noticia.' });
-    if (!nombre) return res.status(400).json({ error: 'Ingresá tu nombre.' });
+    if (!nombre) return res.status(400).json({ error: 'Elegí un alias.' });
+    if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'Ingresá un correo válido.' });
     if (texto.length < TEXTO_MIN) return res.status(400).json({ error: 'El comentario es muy corto.' });
     if (URL_RE.test(nombre) || URL_RE.test(texto)) {
       return res.status(400).json({ error: 'No se permiten links en los comentarios.' });
@@ -75,7 +82,7 @@ export default async function handler(req, res) {
       const resp = await fetch(`${SUPABASE_URL}/rest/v1/comentarios`, {
         method: 'POST',
         headers: { ...headers, Prefer: 'return=minimal' },
-        body: JSON.stringify({ noticia_slug: slug, nombre, texto }),
+        body: JSON.stringify({ noticia_slug: slug, nombre, email, texto }),
       });
       if (!resp.ok) throw new Error(`Supabase HTTP ${resp.status}: ${await resp.text()}`);
       return res.status(200).json({ ok: true });
