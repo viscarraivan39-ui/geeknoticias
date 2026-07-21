@@ -36,7 +36,7 @@ const CATEGORIES = [
   },
   {
     categoria: 'actualidad',
-    queries: ['chile actualidad', 'latinoamerica noticias'],
+    queries: ['Chile', 'Argentina OR México OR Colombia OR Latinoamérica'],
     imageQuery: 'news current events',
     lang: 'es',
   },
