@@ -16,7 +16,7 @@
   :root{
     --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
     --border:#e7e7e9; --accent:#e8590c; --accent-soft:rgba(232,89,12,0.1);
-    --chip-bg:#f4f4f5; --footer-bg:#111111; --radius:14px;
+    --chip-bg:#f4f4f5; --footer-bg:#111111; --radius:14px; --badge-bg:rgba(24,24,27,0.82);
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -37,39 +37,62 @@
   header.scrolled{box-shadow:0 4px 20px rgba(0,0,0,0.06);}
   header .loadbar{position:absolute; left:0; bottom:-1px; height:2px; width:40%; background:var(--accent); opacity:0; transform:translateX(-100%);}
   header.loading .loadbar{opacity:1; animation:loadingBar 1s ease-in-out infinite;}
-  .header__inner{max-width:1180px; margin:0 auto; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;}
+  .header__inner{max-width:1180px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;}
   .logo{font-size:19px; font-weight:800; letter-spacing:-0.02em;}
   .logo .dot{color:var(--accent);}
 
-  .hero{max-width:1180px; margin:0 auto; padding:52px 20px 8px; animation:fadeUp .5s ease both;}
-  .hero h1{font-size:clamp(30px,4.6vw,44px); font-weight:800; letter-spacing:-0.03em; line-height:1.08; margin:0 0 10px; color:var(--title);}
-  .hero p{color:var(--text-dim); font-size:15.5px; margin:0;}
+  .newsbar{background:var(--accent-soft); border-bottom:1px solid var(--border);}
+  .newsbar__inner{max-width:1180px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  .newsbar__text{font-size:13.5px; color:var(--text);}
+  .newsbar__text strong{color:var(--title); font-weight:700; margin-right:8px;}
+  .newsbar a.btn{border:0; background:var(--accent); color:#fff; font-weight:700; font-size:13px; padding:9px 18px; border-radius:999px; white-space:nowrap; transition:opacity .15s ease;}
+  .newsbar a.btn:hover{opacity:.88;}
 
-  nav.cats{max-width:1180px; margin:0 auto; padding:24px 20px 0; display:flex; gap:8px; flex-wrap:wrap; animation:fadeUp .5s ease .05s both;}
-  nav.cats button{border:0; background:var(--chip-bg); color:var(--text); font-weight:600; font-size:13px; padding:9px 16px; border-radius:999px; cursor:pointer; transition:background .15s ease, color .15s ease;}
+  nav.cats{max-width:1180px; margin:0 auto; padding:20px 20px 0; display:flex; gap:8px; flex-wrap:wrap; animation:fadeUp .5s ease both;}
+  nav.cats button{border:0; background:var(--chip-bg); color:var(--text); font-weight:600; font-size:12.5px; letter-spacing:.02em; text-transform:uppercase; padding:9px 16px; border-radius:999px; cursor:pointer; transition:background .15s ease, color .15s ease;}
   nav.cats button:hover{background:var(--accent-soft); color:var(--accent);}
   nav.cats button.active{background:var(--accent); color:#fff;}
 
-  .section{max-width:1180px; margin:0 auto; padding:32px 20px 60px;}
-  .grid{display:grid; gap:22px; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));}
-  .empty{grid-column:1/-1; text-align:center; padding:40px 20px; color:var(--text-dim); font-size:14px;}
+  .section{max-width:1180px; margin:0 auto; padding:26px 20px 60px;}
+  .empty{text-align:center; padding:40px 20px; color:var(--text-dim); font-size:14px;}
 
+  /* ── historia destacada (feature grande) ─────────────────────────── */
+  .hero-story{position:relative; display:block; border-radius:var(--radius); overflow:hidden; height:clamp(320px,46vw,480px); margin-bottom:22px; opacity:0; transform:translateY(14px); animation:fadeUp .5s ease .05s forwards;}
+  .hero-story__media{position:absolute; inset:0;}
+  .hero-story__media img{width:100%; height:100%; object-fit:cover; transition:transform .5s ease;}
+  .hero-story:hover .hero-story__media img{transform:scale(1.04);}
+  .hero-story__overlay{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:32px; background:linear-gradient(to top, rgba(0,0,0,.88), rgba(0,0,0,.25) 60%, transparent);}
+  .hero-story__title{color:#fff; font-size:clamp(22px,3.4vw,34px); font-weight:800; letter-spacing:-0.02em; line-height:1.15; margin:10px 0 8px; max-width:34ch;}
+  .hero-story__resumen{color:rgba(255,255,255,0.82); font-size:14.5px; line-height:1.5; max-width:56ch; margin:0 0 10px;}
+  .hero-story__meta{color:rgba(255,255,255,0.65); font-size:12px; font-family:'JetBrains Mono', monospace;}
+
+  /* ── segunda historia (imagen + texto lado a lado) ───────────────── */
+  .side-story{display:grid; grid-template-columns:1.2fr 1fr; gap:26px; align-items:center; margin-bottom:32px; opacity:0; transform:translateY(14px); animation:fadeUp .5s ease .1s forwards;}
+  .side-story__media{border-radius:var(--radius); overflow:hidden; aspect-ratio:4/3; position:relative;}
+  .side-story__media img{width:100%; height:100%; object-fit:cover; transition:transform .4s ease;}
+  .side-story:hover .side-story__media img{transform:scale(1.05);}
+  .side-story__title{font-size:clamp(19px,2.4vw,26px); font-weight:800; letter-spacing:-0.02em; line-height:1.2; color:var(--title); margin:10px 0 8px;}
+  .side-story__resumen{font-size:14px; color:var(--text-dim); line-height:1.55; margin:0 0 10px;}
+  .side-story__meta{font-size:12px; color:var(--text-dim); font-family:'JetBrains Mono', monospace;}
+  @media (max-width:720px){ .side-story{grid-template-columns:1fr;} }
+
+  /* ── badge de categoría sobre la imagen ───────────────────────────── */
+  .badge{font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#fff; background:var(--badge-bg); display:inline-block; padding:4px 10px; border-radius:6px; width:fit-content;}
+  .hero-story .badge, .side-story .badge{position:absolute; top:14px; right:14px;}
+  .side-story__media .badge{top:14px; right:14px;}
+
+  /* ── grilla de 3 columnas ──────────────────────────────────────────── */
+  .grid{display:grid; gap:22px; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));}
   .card{background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; box-shadow:0 1px 2px rgba(0,0,0,0.04); transition:transform .2s ease, box-shadow .2s ease; opacity:0; transform:translateY(14px); animation:fadeUp .45s ease forwards; animation-delay:calc(var(--i, 0) * 50ms);}
   .card:hover{transform:translateY(-4px); box-shadow:0 14px 30px rgba(0,0,0,0.09);}
   .card:hover .card__media img{transform:scale(1.05);}
-  .card__media{aspect-ratio:16/9; background:var(--chip-bg); overflow:hidden;}
+  .card__media{aspect-ratio:16/9; background:var(--chip-bg); overflow:hidden; position:relative;}
   .card__media img{width:100%; height:100%; object-fit:cover; transition:transform .4s ease;}
-  .card__body{padding:16px 18px 18px; display:flex; flex-direction:column; gap:9px; flex:1;}
-  .card__cat{font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); background:var(--accent-soft); display:inline-block; padding:3px 9px; border-radius:5px; width:fit-content;}
-  .card__title{font-size:16px; font-weight:700; letter-spacing:-0.01em; line-height:1.35; color:var(--title);}
-  .card__resumen{font-size:13.5px; color:var(--text-dim); line-height:1.5;}
+  .card__media .badge{position:absolute; top:10px; right:10px;}
+  .card__body{padding:15px 17px 17px; display:flex; flex-direction:column; gap:8px; flex:1;}
+  .card__title{font-size:15.5px; font-weight:700; letter-spacing:-0.01em; line-height:1.35; color:var(--title);}
+  .card__resumen{font-size:13.5px; color:var(--text-dim); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
   .card__meta{font-size:11.5px; color:var(--text-dim); font-family:'JetBrains Mono', monospace; margin-top:auto; opacity:.8;}
-
-  /* primera noticia destacada, estilo "featured story" */
-  .grid .card:first-child{grid-column:span 2;}
-  .grid .card:first-child .card__media{aspect-ratio:21/9;}
-  .grid .card:first-child .card__title{font-size:22px;}
-  @media (max-width:640px){ .grid .card:first-child{grid-column:span 1;} .grid .card:first-child .card__media{aspect-ratio:16/9;} .grid .card:first-child .card__title{font-size:17px;} }
 
   .totop{position:fixed; right:20px; bottom:20px; width:42px; height:42px; border-radius:50%; background:var(--card-bg); color:var(--text); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:17px; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.12); opacity:0; pointer-events:none; transform:translateY(10px); transition:opacity .25s ease, transform .25s ease; z-index:60;}
   .totop.show{opacity:1; pointer-events:auto; transform:translateY(0);}
@@ -105,9 +128,11 @@
   <div class="loadbar"></div>
 </header>
 
-<div class="hero">
-  <h1>Noticias</h1>
-  <p>Inteligencia artificial, videojuegos y actualidad — actualizado todos los días.</p>
+<div class="newsbar">
+  <div class="newsbar__inner">
+    <div class="newsbar__text"><strong>Newsletter</strong>Recibí las noticias del día directo en tu correo.</div>
+    <a class="btn" href="#subscribe">Suscribirme →</a>
+  </div>
 </div>
 
 <nav class="cats" id="cats">
@@ -118,12 +143,13 @@
 </nav>
 
 <div class="section">
+  <div id="feature"></div>
   <div class="grid" id="grid">
     <div class="empty">Cargando noticias…</div>
   </div>
 </div>
 
-<section class="subscribe">
+<section class="subscribe" id="subscribe">
   <div class="subscribe__inner">
     <span class="tag">No te pierdas ninguna noticia</span>
     <h2>Recibí las noticias en tu correo</h2>
@@ -155,36 +181,75 @@ window.addEventListener('scroll', () => {
 totopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
 const CATEGORIA_LABEL = { ia: 'IA', videojuegos: 'Videojuegos', actualidad: 'Actualidad' };
+const feature = document.getElementById('feature');
 const grid = document.getElementById('grid');
 const catsNav = document.getElementById('cats');
 
+function fechaCorta(iso) {
+  return new Date(iso).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+}
+
+function metaTexto(n) {
+  return fechaCorta(n.publicado_en) + (n.fuente_nombre ? ' · ' + n.fuente_nombre : '');
+}
+
+function heroHtml(n) {
+  const img = n.imagen_url ? `<img src="${n.imagen_url}" alt="" loading="lazy">` : '';
+  return `<a class="hero-story" href="/noticia/${encodeURIComponent(n.slug)}">
+    <div class="hero-story__media">${img}</div>
+    <span class="badge">${CATEGORIA_LABEL[n.categoria] || n.categoria}</span>
+    <div class="hero-story__overlay">
+      <div class="hero-story__title">${n.titulo}</div>
+      <div class="hero-story__resumen">${n.resumen}</div>
+      <div class="hero-story__meta">${metaTexto(n)}</div>
+    </div>
+  </a>`;
+}
+
+function sideHtml(n) {
+  const img = n.imagen_url ? `<img src="${n.imagen_url}" alt="" loading="lazy">` : '';
+  return `<a class="side-story" href="/noticia/${encodeURIComponent(n.slug)}">
+    <div class="side-story__media">${img}<span class="badge">${CATEGORIA_LABEL[n.categoria] || n.categoria}</span></div>
+    <div class="side-story__body">
+      <div class="side-story__title">${n.titulo}</div>
+      <div class="side-story__resumen">${n.resumen}</div>
+      <div class="side-story__meta">${metaTexto(n)}</div>
+    </div>
+  </a>`;
+}
+
 function cardHtml(n, i) {
-  const fecha = new Date(n.publicado_en).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
   const img = n.imagen_url
     ? `<img src="${n.imagen_url}" alt="" loading="lazy">`
     : '';
   return `<a class="card" style="--i:${i}" href="/noticia/${encodeURIComponent(n.slug)}">
-    <div class="card__media">${img}</div>
+    <div class="card__media">${img}<span class="badge">${CATEGORIA_LABEL[n.categoria] || n.categoria}</span></div>
     <div class="card__body">
-      <span class="card__cat">${CATEGORIA_LABEL[n.categoria] || n.categoria}</span>
       <div class="card__title">${n.titulo}</div>
       <div class="card__resumen">${n.resumen}</div>
-      <div class="card__meta">${fecha}${n.fuente_nombre ? ' · ' + n.fuente_nombre : ''}</div>
+      <div class="card__meta">${metaTexto(n)}</div>
     </div>
   </a>`;
 }
 
 async function loadNoticias(categoria) {
   headerEl.classList.add('loading');
+  feature.innerHTML = '';
   grid.innerHTML = '<div class="empty">Cargando noticias…</div>';
   try {
     const url = categoria ? `/api/noticias?categoria=${encodeURIComponent(categoria)}` : '/api/noticias';
     const resp = await fetch(url);
     const data = await resp.json();
     const noticias = data.noticias || [];
-    grid.innerHTML = noticias.length
-      ? noticias.map((n, i) => cardHtml(n, i)).join('')
-      : '<div class="empty">Todavía no hay noticias en esta categoría. Volvé pronto.</div>';
+
+    if (!noticias.length) {
+      grid.innerHTML = '<div class="empty">Todavía no hay noticias en esta categoría. Volvé pronto.</div>';
+      return;
+    }
+
+    const [first, second, ...rest] = noticias;
+    feature.innerHTML = heroHtml(first) + (second ? sideHtml(second) : '');
+    grid.innerHTML = rest.length ? rest.map((n, i) => cardHtml(n, i)).join('') : '';
   } catch {
     grid.innerHTML = '<div class="empty">No se pudieron cargar las noticias.</div>';
   } finally {
