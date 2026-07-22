@@ -1,7 +1,6 @@
 {
   "crons": [
-    { "path": "/api/cron/fetch-news", "schedule": "0 13 * * *" },
-    { "path": "/api/cron/fetch-story", "schedule": "0 23 * * *" }
+    { "path": "/api/cron/fetch-news", "schedule": "0 13 * * *" }
   ],
   "functions": {
     "api/cron/fetch-news.js": { "maxDuration": 60 },
