@@ -24,6 +24,18 @@
       --border:#2a2a2e; --accent:#ff7a33; --accent-soft:rgba(255,122,51,0.14); --chip-bg:#232327;
     }
   }
+  /* Elección manual del usuario (botón de tema) — siempre gana sobre la
+     preferencia del sistema operativo. */
+  :root[data-theme="light"]{
+    --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
+    --border:#e7e7e9; --accent:#e8590c; --accent-soft:rgba(232,89,12,0.1); --chip-bg:#f4f4f5;
+  }
+  :root[data-theme="dark"]{
+    --bg:#111111; --card-bg:#18181b; --text:#c9c9cc; --text-dim:#8b8b93; --title:#f4f4f5;
+    --border:#2a2a2e; --accent:#ff7a33; --accent-soft:rgba(255,122,51,0.14); --chip-bg:#232327;
+  }
+  .theme-toggle{position:fixed; right:20px; bottom:74px; width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:19px; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.14); z-index:70; display:flex; align-items:center; justify-content:center; transition:transform .15s ease;}
+  .theme-toggle:hover{transform:scale(1.08);}
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing:antialiased;}
@@ -124,8 +136,17 @@
   footer{background:var(--footer-bg); color:rgba(255,255,255,0.55); padding:30px 20px; text-align:center; font-size:12.5px;}
   footer a{color:rgba(255,255,255,0.8);}
 </style>
+<script>
+// Aplica el tema guardado ANTES de que se pinte la página, para que no
+// haya un parpadeo (flash) del tema por defecto seguido del elegido.
+(function () {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+})();
+</script>
 </head>
 <body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar entre tema claro y oscuro">🌙</button>
 <div class="ticker" id="ticker">
   <div class="ticker__inner" id="tickerInner">Cargando indicadores…</div>
 </div>
@@ -206,6 +227,26 @@ window.addEventListener('scroll', () => {
   totopBtn.classList.toggle('show', window.scrollY > 500);
 }, { passive: true });
 totopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// Toggle de tema claro/oscuro manual — pisa la preferencia del sistema
+// operativo y se recuerda entre visitas (localStorage).
+const themeToggleBtn = document.getElementById('themeToggle');
+function systemPrefersDark() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function currentTheme() {
+  return document.documentElement.dataset.theme || (systemPrefersDark() ? 'dark' : 'light');
+}
+function applyThemeIcon() {
+  themeToggleBtn.textContent = currentTheme() === 'dark' ? '☀️' : '🌙';
+}
+themeToggleBtn.addEventListener('click', () => {
+  const next = currentTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('theme', next);
+  applyThemeIcon();
+});
+applyThemeIcon();
 
 const CATEGORIA_LABEL = { ia: 'IA', videojuegos: 'Videojuegos', actualidad: 'Actualidad', deportes: 'Deportes', salud: 'Salud' };
 const feature = document.getElementById('feature');

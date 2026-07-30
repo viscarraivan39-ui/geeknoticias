@@ -23,6 +23,16 @@
       --border:#2a2a2e; --accent:#3ddba0; --accent-soft:rgba(61,219,160,0.14); --chip-bg:#232327;
     }
   }
+  :root[data-theme="light"]{
+    --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
+    --border:#e7e7e9; --accent:#0d7d5e; --accent-soft:rgba(13,125,94,0.1); --chip-bg:#f4f4f5;
+  }
+  :root[data-theme="dark"]{
+    --bg:#111111; --card-bg:#18181b; --text:#c9c9cc; --text-dim:#8b8b93; --title:#f4f4f5;
+    --border:#2a2a2e; --accent:#3ddba0; --accent-soft:rgba(61,219,160,0.14); --chip-bg:#232327;
+  }
+  .theme-toggle{position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:19px; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.14); z-index:70; display:flex; align-items:center; justify-content:center; transition:transform .15s ease;}
+  .theme-toggle:hover{transform:scale(1.08);}
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing:antialiased;}
@@ -59,8 +69,15 @@
   footer a{color:rgba(255,255,255,0.8);}
   @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;} }
 </style>
+<script>
+(function () {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+})();
+</script>
 </head>
 <body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar entre tema claro y oscuro">🌙</button>
 <header>
   <div class="header__inner">
     <a class="logo" href="/">Geek<span class="dot">Noticias</span></a>
@@ -106,6 +123,24 @@ fetch('/api/cronicas')
       : '<div class="empty">Todavía no hay crónicas publicadas. Volvé el miércoles o domingo.</div>';
   })
   .catch(() => { grid.innerHTML = '<div class="empty">No se pudieron cargar las crónicas.</div>'; });
+
+const themeToggleBtn = document.getElementById('themeToggle');
+function systemPrefersDark() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function currentTheme() {
+  return document.documentElement.dataset.theme || (systemPrefersDark() ? 'dark' : 'light');
+}
+function applyThemeIcon() {
+  themeToggleBtn.textContent = currentTheme() === 'dark' ? '☀️' : '🌙';
+}
+themeToggleBtn.addEventListener('click', () => {
+  const next = currentTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('theme', next);
+  applyThemeIcon();
+});
+applyThemeIcon();
 </script>
 </body>
 </html>
