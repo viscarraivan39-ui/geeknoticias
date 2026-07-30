@@ -208,7 +208,7 @@
 <header>
   <div class="header__inner">
     <a class="logo" href="/"><img src="/img/logo.png" alt="" width="26" height="26">Geek<span class="dot">Noticias</span></a>
-    <nav><a href="/historias.html">Historias →</a> &nbsp; <a href="/cronicas.html">Crónicas →</a></nav>
+    <nav><a href="/historias.html">Historias →</a> &nbsp; <a href="/cronicas.html">Crónicas →</a> &nbsp; <a href="/equipo.html">Equipo</a></nav>
   </div>
   <div class="loadbar"></div>
 </header>
@@ -479,7 +479,9 @@ function fechaCorta(iso) {
 }
 
 function metaTexto(n) {
-  return fechaCorta(n.publicado_en) + (n.fuente_nombre ? ' · ' + n.fuente_nombre : '');
+  return fechaCorta(n.publicado_en)
+    + (n.fuente_nombre ? ' · ' + n.fuente_nombre : '')
+    + (n.autor ? ' · Por ' + n.autor : '');
 }
 
 function heroHtml(n) {

@@ -88,7 +88,8 @@ ${h.imagen_url ? `<meta property="og:image" content="${escapeHtml(h.imagen_url)}
   .contenido img{margin:8px 0 24px;}
   .credito{font-size:11px; color:var(--text-dim); margin-top:6px; font-family:'Inter', sans-serif; font-style:normal;}
   .ad-slot{margin:32px 0;}
-  .firma{margin-top:36px; padding-top:20px; border-top:1px solid var(--border); font-size:13px; color:var(--text-dim); font-family:'Inter', sans-serif;}
+  .firma{margin-top:36px; padding-top:20px; border-top:1px solid var(--border); font-size:13px; color:var(--text-dim); font-family:'Inter', sans-serif; display:flex; align-items:center; gap:10px;}
+  .firma img{width:36px; height:36px; border-radius:50%; object-fit:cover; flex-shrink:0;}
   footer{background:var(--footer-bg); color:rgba(255,255,255,0.55); padding:30px 20px; text-align:center; font-size:12.5px;}
   footer a{color:rgba(255,255,255,0.8);}
   @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
@@ -104,7 +105,7 @@ ${h.imagen_url ? `<meta property="og:image" content="${escapeHtml(h.imagen_url)}
   ${h.imagen_url ? `<img src="${escapeHtml(h.imagen_url)}" alt="${escapeHtml(h.titulo)}">${h.imagen_credito ? `<div class="credito">${escapeHtml(h.imagen_credito)}</div>` : ''}` : ''}
   <div class="ad-slot"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5927579839118584" data-ad-format="fluid" data-ad-layout="in-article"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
   <div class="contenido">${contenidoConImagen}</div>
-  <div class="firma">Escrito por <b>Bastián</b>, cronista de historias de GeekNoticias.</div>
+  <div class="firma"><img src="/img/team/bastian.jpg" alt="Bastián"><span>Escrito por <b>Bastián</b>, cronista de historias de GeekNoticias.</span></div>
 </main>
 <footer>© ${new Date().getFullYear()} GeekNoticias · <a href="/privacidad.html">Privacidad</a> · <a href="/terminos.html">Términos</a></footer>
 </body>

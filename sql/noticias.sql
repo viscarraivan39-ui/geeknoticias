@@ -18,6 +18,11 @@ create table if not exists noticias (
 create index if not exists noticias_categoria_idx on noticias (categoria, publicado_en desc);
 create index if not exists noticias_publicado_idx on noticias (publicado_en desc);
 
+-- Firma del periodista (perfil fijo por categoría generado con IA, ver
+-- data/autores.json y equipo.html) — nullable porque las noticias viejas
+-- no tienen autor asignado retroactivamente.
+alter table noticias add column if not exists autor text;
+
 -- RLS: lectura pública, escritura solo con la service_role key (la que usa el cron)
 alter table noticias enable row level security;
 

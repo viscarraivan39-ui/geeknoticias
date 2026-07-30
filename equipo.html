@@ -3,33 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crónicas — GeekNoticias</title>
-<meta name="description" content="Crónicas de Franco Islas sobre tecnología y vida cotidiana en Chile y Latinoamérica. Ensayo personal generado con IA, no noticias verificadas.">
-<link rel="canonical" href="https://geeknoticias.com/cronicas.html">
+<title>Nuestro Equipo — GeekNoticias</title>
+<meta name="description" content="El equipo editorial de GeekNoticias: perfiles generados con IA, cada uno especializado en una sección del sitio.">
+<link rel="canonical" href="https://geeknoticias.com/equipo.html">
+<link rel="icon" href="/img/logo.png">
+<link rel="apple-touch-icon" href="/img/logo.png">
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5927579839118584"
      crossorigin="anonymous"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
-    --border:#e7e7e9; --accent:#0d7d5e; --accent-soft:rgba(13,125,94,0.1); --chip-bg:#f4f4f5; --footer-bg:#111111; --radius:14px;
+    --border:#e7e7e9; --accent:#e8590c; --accent-soft:rgba(232,89,12,0.1); --chip-bg:#f4f4f5; --footer-bg:#111111; --radius:14px;
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#111111; --card-bg:#18181b; --text:#c9c9cc; --text-dim:#8b8b93; --title:#f4f4f5;
-      --border:#2a2a2e; --accent:#3ddba0; --accent-soft:rgba(61,219,160,0.14); --chip-bg:#232327;
+      --border:#2a2a2e; --accent:#ff7a33; --accent-soft:rgba(255,122,51,0.14); --chip-bg:#232327;
     }
   }
   :root[data-theme="light"]{
     --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
-    --border:#e7e7e9; --accent:#0d7d5e; --accent-soft:rgba(13,125,94,0.1); --chip-bg:#f4f4f5;
+    --border:#e7e7e9; --accent:#e8590c; --accent-soft:rgba(232,89,12,0.1); --chip-bg:#f4f4f5;
   }
   :root[data-theme="dark"]{
     --bg:#111111; --card-bg:#18181b; --text:#c9c9cc; --text-dim:#8b8b93; --title:#f4f4f5;
-    --border:#2a2a2e; --accent:#3ddba0; --accent-soft:rgba(61,219,160,0.14); --chip-bg:#232327;
+    --border:#2a2a2e; --accent:#ff7a33; --accent-soft:rgba(255,122,51,0.14); --chip-bg:#232327;
   }
   .theme-toggle{position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:19px; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.14); z-index:70; display:flex; align-items:center; justify-content:center; transition:transform .15s ease;}
   .theme-toggle:hover{transform:scale(1.08);}
@@ -48,23 +50,21 @@
   .header__inner nav a{font-size:13px; font-weight:600; color:var(--text-dim);}
 
   .hero{max-width:1180px; margin:0 auto; padding:48px 20px 8px; animation:fadeUp .5s ease both;}
-  .hero h1{font-family:'Playfair Display', serif; font-style:italic; font-size:clamp(28px,4.4vw,42px); font-weight:600; line-height:1.1; margin:0 0 10px; color:var(--title);}
-  .hero p{color:var(--text-dim); font-size:15px; margin:0 0 4px; max-width:60ch;}
-  .aviso{font-size:12.5px; color:var(--accent); font-weight:600;}
+  .hero h1{font-size:clamp(28px,4.4vw,40px); font-weight:800; letter-spacing:-0.02em; line-height:1.1; margin:0 0 10px; color:var(--title);}
+  .hero p{color:var(--text-dim); font-size:15px; margin:0 0 4px; max-width:64ch;}
+  .aviso{background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; padding:12px 16px; font-size:13px; color:var(--text); margin-top:16px; max-width:64ch; line-height:1.5;}
+  .aviso b{color:var(--accent);}
 
   .section{max-width:1180px; margin:0 auto; padding:26px 20px 60px;}
-  .grid{display:grid; gap:22px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));}
+  .grid{display:grid; gap:22px; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));}
   .empty{grid-column:1/-1; text-align:center; padding:40px 20px; color:var(--text-dim); font-size:14px;}
 
-  .card{background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; box-shadow:0 1px 2px rgba(0,0,0,0.04); transition:transform .2s ease, box-shadow .2s ease; opacity:0; transform:translateY(14px); animation:fadeUp .45s ease forwards; animation-delay:calc(var(--i, 0) * 60ms);}
+  .card{background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; box-shadow:0 1px 2px rgba(0,0,0,0.04); transition:transform .2s ease, box-shadow .2s ease; opacity:0; transform:translateY(14px); animation:fadeUp .45s ease forwards; animation-delay:calc(var(--i, 0) * 60ms); padding:22px 20px;}
   .card:hover{transform:translateY(-4px); box-shadow:0 14px 30px rgba(0,0,0,0.09);}
-  .card:hover .card__media img{transform:scale(1.05);}
-  .card__media{aspect-ratio:16/9; background:var(--chip-bg); overflow:hidden;}
-  .card__media img{width:100%; height:100%; object-fit:cover; transition:transform .5s ease;}
-  .card__body{padding:16px 18px 18px; display:flex; flex-direction:column; gap:9px; flex:1;}
-  .card__cat{font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); background:var(--accent-soft); display:inline-block; padding:3px 9px; border-radius:5px; width:fit-content;}
-  .card__title{font-family:'Playfair Display', serif; font-style:italic; font-size:18px; font-weight:600; line-height:1.35; color:var(--title);}
-  .card__resumen{font-size:13.5px; color:var(--text-dim); line-height:1.5;}
+  .card__photo{width:84px; height:84px; border-radius:50%; object-fit:cover; margin:0 auto 14px; border:2px solid var(--border);}
+  .card__nombre{font-size:16px; font-weight:800; color:var(--title); text-align:center;}
+  .card__rol{font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); text-align:center; margin:4px 0 12px;}
+  .card__bio{font-size:13px; color:var(--text-dim); line-height:1.55; text-align:center;}
 
   footer{background:var(--footer-bg); color:rgba(255,255,255,0.55); padding:30px 20px; text-align:center; font-size:12.5px; margin-top:24px;}
   footer a{color:rgba(255,255,255,0.8);}
@@ -82,19 +82,19 @@
 <header>
   <div class="header__inner">
     <a class="logo" href="/"><img src="/img/logo.png" alt="" width="26" height="26">Geek<span class="dot">Noticias</span></a>
-    <nav><a href="/">← Noticias</a> &nbsp; <a href="/historias.html">Historias</a> &nbsp; <a href="/equipo.html">Equipo</a></nav>
+    <nav><a href="/">← Noticias</a> &nbsp; <a href="/historias.html">Historias</a> &nbsp; <a href="/cronicas.html">Crónicas</a></nav>
   </div>
 </header>
 
 <div class="hero">
-  <h1>Crónicas</h1>
-  <p>Ensayos personales de Franco Islas sobre tecnología y vida cotidiana en Chile y Latinoamérica. Publica miércoles y domingo.</p>
-  <div class="aviso">Crónica de opinión generada con IA — no son noticias verificadas.</div>
+  <h1>Nuestro Equipo</h1>
+  <p>Cada sección de GeekNoticias tiene su propio periodista o cronista, especializado en un tema.</p>
+  <div class="aviso"><b>Perfiles generados con IA.</b> Los nombres, fotos y biografías de este equipo son personas ficticias — no corresponden a periodistas reales. El contenido que firman se genera con asistencia de inteligencia artificial (Groq/NVIDIA NIM), no es trabajo de un ser humano contratado.</div>
 </div>
 
 <div class="section">
   <div class="grid" id="grid">
-    <div class="empty">Cargando crónicas…</div>
+    <div class="empty">Cargando equipo…</div>
   </div>
 </div>
 
@@ -104,26 +104,23 @@
 document.getElementById('year').textContent = new Date().getFullYear();
 const grid = document.getElementById('grid');
 
-function cardHtml(c, i) {
-  const img = c.imagen_url ? `<img src="${c.imagen_url}" alt="" loading="lazy">` : '';
-  return `<a class="card" style="--i:${i}" href="/cronica/${encodeURIComponent(c.slug)}">
-    <div class="card__media">${img}</div>
-    <div class="card__body">
-      <span class="card__cat">Crónica</span>
-      <div class="card__title">${c.titulo}</div>
-      <div class="card__resumen">${c.resumen}</div>
-    </div>
-  </a>`;
+function cardHtml(a, i) {
+  return `<div class="card" style="--i:${i}">
+    <img class="card__photo" src="${a.foto}" alt="${a.nombre}" loading="lazy">
+    <div class="card__nombre">${a.nombre}</div>
+    <div class="card__rol">${a.rol}</div>
+    <div class="card__bio">${a.bio}</div>
+  </div>`;
 }
 
-fetch('/api/cronicas')
+fetch('/data/autores.json')
   .then((r) => r.json())
-  .then(({ cronicas }) => {
-    grid.innerHTML = (cronicas && cronicas.length)
-      ? cronicas.map((c, i) => cardHtml(c, i)).join('')
-      : '<div class="empty">Todavía no hay crónicas publicadas. Volvé el miércoles o domingo.</div>';
+  .then((autores) => {
+    grid.innerHTML = (autores && autores.length)
+      ? autores.map((a, i) => cardHtml(a, i)).join('')
+      : '<div class="empty">No se pudo cargar el equipo.</div>';
   })
-  .catch(() => { grid.innerHTML = '<div class="empty">No se pudieron cargar las crónicas.</div>'; });
+  .catch(() => { grid.innerHTML = '<div class="empty">No se pudo cargar el equipo.</div>'; });
 
 const themeToggleBtn = document.getElementById('themeToggle');
 function systemPrefersDark() {

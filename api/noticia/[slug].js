@@ -15,7 +15,15 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-const CATEGORIA_LABEL = { ia: 'Inteligencia Artificial', videojuegos: 'Videojuegos', actualidad: 'Actualidad' };
+const CATEGORIA_LABEL = { ia: 'Inteligencia Artificial', videojuegos: 'Videojuegos', actualidad: 'Actualidad', deportes: 'Deportes', salud: 'Salud' };
+
+const AUTOR_FOTO = {
+  'Mateo Rojas': '/img/team/mateo-rojas.jpg',
+  'Valentina Ibarra': '/img/team/valentina-ibarra.jpg',
+  'Diego Salinas': '/img/team/diego-salinas.jpg',
+  'Antonia Muñoz': '/img/team/antonia-munoz.jpg',
+  'Renato Fuentes': '/img/team/renato-fuentes.jpg',
+};
 
 function renderPage(n, related) {
   const categoriaLabel = CATEGORIA_LABEL[n.categoria] || n.categoria;
@@ -90,7 +98,10 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
   main{max-width:760px; margin:0 auto; padding:36px 20px 60px;}
   .cat{font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; background:var(--accent-soft); color:var(--accent); display:inline-block; padding:5px 12px; border-radius:6px; margin-bottom:16px; animation:fadeUp .5s ease both;}
   h1{font-size:clamp(26px,4vw,38px); font-weight:800; letter-spacing:-0.02em; line-height:1.12; margin:0 0 10px; color:var(--title); animation:fadeUp .5s ease .05s both;}
-  .meta{font-size:12.5px; color:var(--text-dim); font-family:'JetBrains Mono', monospace; margin-bottom:22px; animation:fadeUp .5s ease .1s both;}
+  .meta{font-size:12.5px; color:var(--text-dim); font-family:'JetBrains Mono', monospace; margin-bottom:10px; animation:fadeUp .5s ease .1s both;}
+  .firma{display:inline-flex; align-items:center; gap:8px; margin-bottom:22px; font-size:13px; color:var(--text-dim);}
+  .firma img{width:28px; height:28px; border-radius:50%; object-fit:cover;}
+  .firma b{color:var(--title);}
   main > img{animation:fadeUp .55s ease .12s both;}
   .contenido{font-size:17px; line-height:1.75; color:var(--text); animation:fadeUp .55s ease .16s both;}
   .contenido h2{font-size:21px; font-weight:700; letter-spacing:-0.01em; color:var(--title); margin:34px 0 10px;}
@@ -140,6 +151,7 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
   <span class="cat">${escapeHtml(categoriaLabel)}</span>
   <h1>${escapeHtml(n.titulo)}</h1>
   <div class="meta">${escapeHtml(fecha)}</div>
+  ${n.autor ? `<a class="firma" href="/equipo.html">${AUTOR_FOTO[n.autor] ? `<img src="${AUTOR_FOTO[n.autor]}" alt="">` : ''}<span>Por <b>${escapeHtml(n.autor)}</b></span></a>` : ''}
   ${n.imagen_url ? `<img src="${escapeHtml(n.imagen_url)}" alt="${escapeHtml(n.titulo)}">${n.imagen_credito ? `<div class="credito">Foto: ${escapeHtml(n.imagen_credito)} / Pexels</div>` : ''}` : ''}
   <div class="ad-slot"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5927579839118584" data-ad-format="fluid" data-ad-layout="in-article"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
   <div class="contenido">${n.contenido_html}</div>

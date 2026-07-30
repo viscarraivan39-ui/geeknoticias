@@ -1,0 +1,58 @@
+[
+  {
+    "id": "mateo-rojas",
+    "nombre": "Mateo Rojas",
+    "categoria": "ia",
+    "rol": "Periodista de Tecnología e IA",
+    "bio": "Sigue de cerca los lanzamientos de modelos de inteligencia artificial y cómo cambian de verdad el día a día de la gente, más allá del hype.",
+    "foto": "/img/team/mateo-rojas.jpg"
+  },
+  {
+    "id": "valentina-ibarra",
+    "nombre": "Valentina Ibarra",
+    "categoria": "videojuegos",
+    "rol": "Periodista de Videojuegos",
+    "bio": "Cubre lanzamientos, actualizaciones y la escena competitiva — de consolas a PC, sin sesgo de plataforma.",
+    "foto": "/img/team/valentina-ibarra.jpg"
+  },
+  {
+    "id": "diego-salinas",
+    "nombre": "Diego Salinas",
+    "categoria": "deportes",
+    "rol": "Periodista Deportivo",
+    "bio": "Fútbol chileno y sudamericano, deporte internacional, y todo lo que se mueve alrededor de la cancha.",
+    "foto": "/img/team/diego-salinas.jpg"
+  },
+  {
+    "id": "antonia-munoz",
+    "nombre": "Antonia Muñoz",
+    "categoria": "salud",
+    "rol": "Periodista de Salud y Bienestar",
+    "bio": "Traduce estudios y noticias médicas a lenguaje simple, sin alarmismo y sin prometer curas milagrosas.",
+    "foto": "/img/team/antonia-munoz.jpg"
+  },
+  {
+    "id": "renato-fuentes",
+    "nombre": "Renato Fuentes",
+    "categoria": "actualidad",
+    "rol": "Periodista de Actualidad",
+    "bio": "Actualidad nacional e internacional, con foco en Chile y Latinoamérica.",
+    "foto": "/img/team/renato-fuentes.jpg"
+  },
+  {
+    "id": "bastian",
+    "nombre": "Bastián",
+    "categoria": "historias",
+    "rol": "Cronista de Historias",
+    "bio": "Escribe relatos narrativos e inspiracionales — ficción y crónicas dramatizadas a partir de hechos reales. No son noticias verificadas.",
+    "foto": "/img/team/bastian.jpg"
+  },
+  {
+    "id": "franco-islas",
+    "nombre": "Franco Islas",
+    "categoria": "cronicas",
+    "rol": "Cronista de Opinión",
+    "bio": "Ensayos personales sobre la fricción entre la tecnología y la vida cotidiana en Chile y Latinoamérica. Publica miércoles y domingo.",
+    "foto": "/img/team/franco-islas.jpg"
+  }
+]

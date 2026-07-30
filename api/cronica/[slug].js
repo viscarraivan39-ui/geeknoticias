@@ -67,7 +67,8 @@ ${c.imagen_url ? `<meta property="og:image" content="${escapeHtml(c.imagen_url)}
   .contenido p{margin:0 0 18px;}
   .credito{font-size:11px; color:var(--text-dim); margin-top:6px; font-family:'Inter', sans-serif; font-style:normal;}
   .ad-slot{margin:32px 0;}
-  .firma{margin-top:36px; padding-top:20px; border-top:1px solid var(--border); font-size:13px; color:var(--text-dim); font-family:'Inter', sans-serif;}
+  .firma{margin-top:36px; padding-top:20px; border-top:1px solid var(--border); font-size:13px; color:var(--text-dim); font-family:'Inter', sans-serif; display:flex; align-items:center; gap:10px;}
+  .firma img{width:36px; height:36px; border-radius:50%; object-fit:cover; flex-shrink:0;}
   footer{background:var(--footer-bg); color:rgba(255,255,255,0.55); padding:30px 20px; text-align:center; font-size:12.5px;}
   footer a{color:rgba(255,255,255,0.8);}
   @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
@@ -83,7 +84,7 @@ ${c.imagen_url ? `<meta property="og:image" content="${escapeHtml(c.imagen_url)}
   ${c.imagen_url ? `<img src="${escapeHtml(c.imagen_url)}" alt="${escapeHtml(c.titulo)}">${c.imagen_credito ? `<div class="credito">${escapeHtml(c.imagen_credito)}</div>` : ''}` : ''}
   <div class="ad-slot"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5927579839118584" data-ad-format="fluid" data-ad-layout="in-article"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
   <div class="contenido">${c.contenido_html}</div>
-  <div class="firma">Escrito por <b>Franco Islas</b>, cronista de GeekNoticias. Publica los miércoles y domingo.</div>
+  <div class="firma"><img src="/img/team/franco-islas.jpg" alt="Franco Islas"><span>Escrito por <b>Franco Islas</b>, cronista de GeekNoticias. Publica los miércoles y domingo.</span></div>
 </main>
 <footer>© ${new Date().getFullYear()} GeekNoticias · <a href="/privacidad.html">Privacidad</a> · <a href="/terminos.html">Términos</a></footer>
 </body>
