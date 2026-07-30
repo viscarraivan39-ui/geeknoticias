@@ -78,6 +78,16 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
       --border:#2a2a2e; --accent:#ff7a33; --accent-soft:rgba(255,122,51,0.14); --chip-bg:#232327;
     }
   }
+  :root[data-theme="light"]{
+    --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
+    --border:#e7e7e9; --accent:#e8590c; --accent-soft:rgba(232,89,12,0.1); --chip-bg:#f4f4f5;
+  }
+  :root[data-theme="dark"]{
+    --bg:#111111; --card-bg:#18181b; --text:#c9c9cc; --text-dim:#8b8b93; --title:#f4f4f5;
+    --border:#2a2a2e; --accent:#ff7a33; --accent-soft:rgba(255,122,51,0.14); --chip-bg:#232327;
+  }
+  .theme-toggle{position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:19px; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.14); z-index:70; display:flex; align-items:center; justify-content:center; transition:transform .15s ease;}
+  .theme-toggle:hover{transform:scale(1.08);}
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing:antialiased;}
@@ -143,8 +153,15 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
     *, *::before, *::after{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
   }
 </style>
+<script>
+(function () {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+})();
+</script>
 </head>
 <body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar entre tema claro y oscuro">🌙</button>
 <div class="ticker" id="ticker"><div class="ticker__inner" id="tickerInner">Cargando indicadores…</div></div>
 <header><div class="inner"><a class="logo" href="/">Geek<span class="dot">Noticias</span></a><a href="/">← Todas las noticias</a></div></header>
 <main>
@@ -177,6 +194,24 @@ ${n.imagen_url ? `<meta property="og:image" content="${escapeHtml(n.imagen_url)}
 <footer>© ${new Date().getFullYear()} GeekNoticias · <a href="/privacidad.html">Privacidad</a> · <a href="/terminos.html">Términos</a></footer>
 
 <script>
+const themeToggleBtn = document.getElementById('themeToggle');
+function systemPrefersDark() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function currentTheme() {
+  return document.documentElement.dataset.theme || (systemPrefersDark() ? 'dark' : 'light');
+}
+function applyThemeIcon() {
+  themeToggleBtn.textContent = currentTheme() === 'dark' ? '☀️' : '🌙';
+}
+themeToggleBtn.addEventListener('click', () => {
+  const next = currentTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('theme', next);
+  applyThemeIcon();
+});
+applyThemeIcon();
+
 (function () {
   const SLUG = ${JSON.stringify(n.slug)};
   const lista = document.getElementById('comentariosLista');

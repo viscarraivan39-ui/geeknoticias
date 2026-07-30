@@ -47,6 +47,16 @@ ${c.imagen_url ? `<meta property="og:image" content="${escapeHtml(c.imagen_url)}
       --border:#2a2a2e; --accent:#3ddba0; --accent-soft:rgba(61,219,160,0.14);
     }
   }
+  :root[data-theme="light"]{
+    --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
+    --border:#e7e7e9; --accent:#0d7d5e; --accent-soft:rgba(13,125,94,0.1);
+  }
+  :root[data-theme="dark"]{
+    --bg:#111111; --card-bg:#18181b; --text:#c9c9cc; --text-dim:#8b8b93; --title:#f4f4f5;
+    --border:#2a2a2e; --accent:#3ddba0; --accent-soft:rgba(61,219,160,0.14);
+  }
+  .theme-toggle{position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:19px; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.14); z-index:70; display:flex; align-items:center; justify-content:center; transition:transform .15s ease;}
+  .theme-toggle:hover{transform:scale(1.08);}
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing:antialiased;}
@@ -73,8 +83,15 @@ ${c.imagen_url ? `<meta property="og:image" content="${escapeHtml(c.imagen_url)}
   footer a{color:rgba(255,255,255,0.8);}
   @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
 </style>
+<script>
+(function () {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+})();
+</script>
 </head>
 <body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar entre tema claro y oscuro">🌙</button>
 <header><div class="inner"><a class="logo" href="/">Geek<span class="dot">Noticias</span></a><a href="/cronicas.html">← Todas las crónicas</a></div></header>
 <main>
   <div class="aviso"><b>Crónica de opinión.</b> Es un ensayo/crónica personal escrito con asistencia de IA por Franco Islas, cronista de GeekNoticias — no es una noticia verificada.</div>
@@ -87,6 +104,25 @@ ${c.imagen_url ? `<meta property="og:image" content="${escapeHtml(c.imagen_url)}
   <div class="firma"><img src="/img/team/franco-islas.jpg" alt="Franco Islas"><span>Escrito por <b>Franco Islas</b>, cronista de GeekNoticias. Publica los miércoles y domingo.</span></div>
 </main>
 <footer>© ${new Date().getFullYear()} GeekNoticias · <a href="/privacidad.html">Privacidad</a> · <a href="/terminos.html">Términos</a></footer>
+<script>
+const themeToggleBtn = document.getElementById('themeToggle');
+function systemPrefersDark() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function currentTheme() {
+  return document.documentElement.dataset.theme || (systemPrefersDark() ? 'dark' : 'light');
+}
+function applyThemeIcon() {
+  themeToggleBtn.textContent = currentTheme() === 'dark' ? '☀️' : '🌙';
+}
+themeToggleBtn.addEventListener('click', () => {
+  const next = currentTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('theme', next);
+  applyThemeIcon();
+});
+applyThemeIcon();
+</script>
 </body>
 </html>`;
 }
