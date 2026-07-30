@@ -1,11 +1,9 @@
 {
   "crons": [
-    { "path": "/api/cron/fetch-news", "schedule": "0 13 * * *" }
+    { "path": "/api/cron/run?job=news", "schedule": "0 13 * * *" }
   ],
   "functions": {
-    "api/cron/fetch-news.js": { "maxDuration": 60 },
-    "api/cron/fetch-story.js": { "maxDuration": 45 },
-    "api/cron/fetch-cronica.js": { "maxDuration": 45 }
+    "api/cron/run.js": { "maxDuration": 60 }
   },
   "rewrites": [
     { "source": "/noticia/:slug", "destination": "/api/noticia/:slug" },
