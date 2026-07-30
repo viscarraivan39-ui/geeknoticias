@@ -274,8 +274,15 @@ async function tryPollinations(prompt) {
   }
 }
 
-async function findImage(imagenPrompt) {
-  const prompt = (imagenPrompt || 'cinematic dreamlike photograph, warm nostalgic light').slice(0, 300);
+async function findImage(imagenPrompt, contexto) {
+  // Si el modelo no devolvió imagen_prompt, el fallback genérico de antes era
+  // idéntico para TODAS las historias sin prompt propio — eso es lo que hacía
+  // que se repitiera "siempre la misma imagen". Sumamos contexto único
+  // (arquetipo/título) para que nunca dos historias compartan el mismo texto.
+  const fallback = contexto
+    ? `cinematic dreamlike photograph, warm nostalgic light, scene evoking: ${contexto}`
+    : 'cinematic dreamlike photograph, warm nostalgic light';
+  const prompt = (imagenPrompt || fallback).slice(0, 300);
   for (let attempt = 0; attempt < IMAGE_RETRIES; attempt++) {
     const url = await tryPollinations(prompt);
     if (url) return { imagen_url: url, imagen_credito: 'Generada con IA' };
@@ -347,8 +354,8 @@ export default async function handler(req, res) {
     }
 
     const [primeraImagen, segundaImagen] = await Promise.all([
-      findImage(historia.imagen_prompt),
-      findImage(historia.imagen_prompt_2),
+      findImage(historia.imagen_prompt, historia.titulo || arquetipo),
+      findImage(historia.imagen_prompt_2, historia.titulo || arquetipo),
     ]);
     const { imagen_url, imagen_credito } = primeraImagen;
     const imagen_url_2 = segundaImagen.imagen_url;

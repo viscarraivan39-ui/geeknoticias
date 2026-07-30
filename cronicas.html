@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Historias — GeekNoticias</title>
-<meta name="description" content="Historias narrativas e inspiracionales escritas por Bastián, el cronista de GeekNoticias. Contenido narrativo generado con IA, no noticias verificadas.">
-<link rel="canonical" href="https://geeknoticias.com/historias.html">
+<title>Crónicas — GeekNoticias</title>
+<meta name="description" content="Crónicas de Franco Islas sobre tecnología y vida cotidiana en Chile y Latinoamérica. Ensayo personal generado con IA, no noticias verificadas.">
+<link rel="canonical" href="https://geeknoticias.com/cronicas.html">
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5927579839118584"
      crossorigin="anonymous"></script>
@@ -15,12 +15,12 @@
 <style>
   :root{
     --bg:#fdfdfd; --card-bg:#fff; --text:#292929; --text-dim:#71717a; --title:#18181b;
-    --border:#e7e7e9; --accent:#7c3aed; --accent-soft:rgba(124,58,237,0.1); --chip-bg:#f4f4f5; --footer-bg:#111111; --radius:14px;
+    --border:#e7e7e9; --accent:#0d7d5e; --accent-soft:rgba(13,125,94,0.1); --chip-bg:#f4f4f5; --footer-bg:#111111; --radius:14px;
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#111111; --card-bg:#18181b; --text:#c9c9cc; --text-dim:#8b8b93; --title:#f4f4f5;
-      --border:#2a2a2e; --accent:#b794f6; --accent-soft:rgba(183,148,246,0.14); --chip-bg:#232327;
+      --border:#2a2a2e; --accent:#3ddba0; --accent-soft:rgba(61,219,160,0.14); --chip-bg:#232327;
     }
   }
   *{box-sizing:border-box;}
@@ -64,19 +64,19 @@
 <header>
   <div class="header__inner">
     <a class="logo" href="/">Geek<span class="dot">Noticias</span></a>
-    <nav><a href="/">← Noticias</a> &nbsp; <a href="/cronicas.html">Crónicas →</a></nav>
+    <nav><a href="/">← Noticias</a> &nbsp; <a href="/historias.html">Historias</a></nav>
   </div>
 </header>
 
 <div class="hero">
-  <h1>Historias</h1>
-  <p>Relatos narrativos escritos por Bastián, el cronista de GeekNoticias.</p>
-  <div class="aviso">Contenido inspiracional generado con IA — no son noticias verificadas.</div>
+  <h1>Crónicas</h1>
+  <p>Ensayos personales de Franco Islas sobre tecnología y vida cotidiana en Chile y Latinoamérica. Publica miércoles y domingo.</p>
+  <div class="aviso">Crónica de opinión generada con IA — no son noticias verificadas.</div>
 </div>
 
 <div class="section">
   <div class="grid" id="grid">
-    <div class="empty">Cargando historias…</div>
+    <div class="empty">Cargando crónicas…</div>
   </div>
 </div>
 
@@ -86,27 +86,26 @@
 document.getElementById('year').textContent = new Date().getFullYear();
 const grid = document.getElementById('grid');
 
-function cardHtml(h, i) {
-  const fecha = new Date(h.publicado_en).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
-  const img = h.imagen_url ? `<img src="${h.imagen_url}" alt="" loading="lazy">` : '';
-  return `<a class="card" style="--i:${i}" href="/historia/${encodeURIComponent(h.slug)}">
+function cardHtml(c, i) {
+  const img = c.imagen_url ? `<img src="${c.imagen_url}" alt="" loading="lazy">` : '';
+  return `<a class="card" style="--i:${i}" href="/cronica/${encodeURIComponent(c.slug)}">
     <div class="card__media">${img}</div>
     <div class="card__body">
-      <span class="card__cat">${h.es_real ? 'Hecho real' : h.arquetipo}</span>
-      <div class="card__title">${h.titulo}</div>
-      <div class="card__resumen">${h.resumen}</div>
+      <span class="card__cat">Crónica</span>
+      <div class="card__title">${c.titulo}</div>
+      <div class="card__resumen">${c.resumen}</div>
     </div>
   </a>`;
 }
 
-fetch('/api/historias')
+fetch('/api/cronicas')
   .then((r) => r.json())
-  .then(({ historias }) => {
-    grid.innerHTML = (historias && historias.length)
-      ? historias.map((h, i) => cardHtml(h, i)).join('')
-      : '<div class="empty">Todavía no hay historias publicadas. Volvé pronto.</div>';
+  .then(({ cronicas }) => {
+    grid.innerHTML = (cronicas && cronicas.length)
+      ? cronicas.map((c, i) => cardHtml(c, i)).join('')
+      : '<div class="empty">Todavía no hay crónicas publicadas. Volvé el miércoles o domingo.</div>';
   })
-  .catch(() => { grid.innerHTML = '<div class="empty">No se pudieron cargar las historias.</div>'; });
+  .catch(() => { grid.innerHTML = '<div class="empty">No se pudieron cargar las crónicas.</div>'; });
 </script>
 </body>
 </html>

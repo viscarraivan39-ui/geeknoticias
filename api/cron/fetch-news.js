@@ -255,12 +255,16 @@ async function rewriteWithGroq(article) {
       model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'user', content: buildRewritePrompt(article) }],
       response_format: { type: 'json_object' },
+      max_tokens: 4000,
     }),
   });
   if (!resp.ok) throw new Error(`Groq HTTP ${resp.status}: ${await resp.text()}`);
   const data = await resp.json();
   const text = data.choices?.[0]?.message?.content;
   if (!text) throw new Error(`Groq no devolvió contenido: ${JSON.stringify(data)}`);
+  if (data.choices?.[0]?.finish_reason === 'length') {
+    console.error('Groq cortó la respuesta por max_tokens antes de terminar el JSON.');
+  }
   return parseRewriteJson(text);
 }
 
@@ -334,8 +338,13 @@ async function tryPollinations(prompt) {
   }
 }
 
-async function findImage(imagenPrompt, fallbackQuery) {
-  const prompt = (imagenPrompt || fallbackQuery || '').slice(0, 300);
+async function findImage(imagenPrompt, fallbackQuery, titulo) {
+  // Si el modelo no devolvió imagen_prompt (JSON truncado, campo omitido, etc.),
+  // NUNCA le mandamos a Pollinations el fallbackQuery genérico a secas: eso es
+  // lo mismo para todos los artículos de la categoría y es la causa real de
+  // "siempre la misma imagen" — le sumamos el título del artículo para que el
+  // prompt sea único incluso en el peor caso.
+  const prompt = (imagenPrompt || (titulo ? `${fallbackQuery}: ${titulo}` : fallbackQuery) || '').slice(0, 300);
   if (prompt) {
     for (let attempt = 0; attempt < IMAGE_RETRIES; attempt++) {
       const url = await tryPollinations(prompt);
@@ -467,7 +476,7 @@ export default async function handler(req, res) {
         console.error('Dedup semántico falló, sigo sin bloquear la publicación:', err.message || err);
       }
 
-      const { imagen_url, imagen_credito } = await limitImageCalls(() => findImage(rewritten.imagen_prompt, cat.imageFallbackQuery));
+      const { imagen_url, imagen_credito } = await limitImageCalls(() => findImage(rewritten.imagen_prompt, cat.imageFallbackQuery, rewritten.titulo));
       const slugBase = slugify(rewritten.titulo || article.title);
       const slug = `${slugBase}-${urlHash.slice(0, 8)}`;
 
