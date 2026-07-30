@@ -6,6 +6,13 @@
 <title>GeekNoticias — IA, Videojuegos, Deportes y Actualidad</title>
 <meta name="description" content="Noticias de inteligencia artificial, videojuegos, deportes, salud y actualidad, actualizadas todos los días.">
 <link rel="canonical" href="https://geeknoticias.com/">
+<link rel="icon" href="/img/logo.png">
+<link rel="apple-touch-icon" href="/img/logo.png">
+<meta property="og:title" content="GeekNoticias — IA, Videojuegos, Deportes y Actualidad">
+<meta property="og:description" content="Noticias de inteligencia artificial, videojuegos, deportes, salud y actualidad, actualizadas todos los días.">
+<meta property="og:image" content="https://geeknoticias.com/img/banner.png">
+<meta property="og:url" content="https://geeknoticias.com/">
+<meta property="og:type" content="website">
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5927579839118584"
      crossorigin="anonymous"></script>
@@ -54,7 +61,8 @@
   header .loadbar{position:absolute; left:0; bottom:-1px; height:2px; width:40%; background:var(--accent); opacity:0; transform:translateX(-100%);}
   header.loading .loadbar{opacity:1; animation:loadingBar 1s ease-in-out infinite;}
   .header__inner{max-width:1180px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;}
-  .logo{font-size:19px; font-weight:800; letter-spacing:-0.02em;}
+  .logo{font-size:19px; font-weight:800; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px;}
+  .logo img{width:26px; height:26px; border-radius:6px; display:block;}
   .logo .dot{color:var(--accent);}
   .header__inner nav a{font-size:13px; font-weight:600; color:var(--text-dim);}
 
@@ -64,6 +72,23 @@
   .newsbar__text strong{color:var(--title); font-weight:700; margin-right:8px;}
   .newsbar a.btn{border:0; background:var(--accent); color:#fff; font-weight:700; font-size:13px; padding:9px 18px; border-radius:999px; white-space:nowrap; transition:opacity .15s ease;}
   .newsbar a.btn:hover{opacity:.88;}
+
+  /* ── ¿Cómo te sientes hoy? ─────────────────────────────────────────── */
+  .moodbar{background:var(--title); border-bottom:1px solid var(--border);}
+  .moodbar__inner{max-width:1180px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; position:relative;}
+  .moodbar__text{font-size:13.5px; font-weight:700; color:var(--bg);}
+  .moodbar__btns{display:flex; gap:8px;}
+  .moodbar__btn{border:0; background:transparent; font-size:22px; cursor:pointer; line-height:1; padding:4px 6px; border-radius:8px; transition:transform .15s ease, background .15s ease;}
+  .moodbar__btn:hover{transform:scale(1.2); background:rgba(255,255,255,0.1);}
+  .moodbar__close{position:absolute; right:16px; top:50%; transform:translateY(-50%); background:transparent; border:0; color:var(--bg); opacity:.5; font-size:16px; cursor:pointer; padding:4px;}
+  .moodbar__close:hover{opacity:1;}
+  .mood-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.55); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
+  .mood-overlay.show{display:flex;}
+  .mood-modal{background:var(--card-bg); border-radius:16px; max-width:420px; width:100%; padding:30px 26px 26px; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,0.3); animation:fadeUp .3s ease both;}
+  .mood-modal__emoji{font-size:40px; margin-bottom:14px;}
+  .mood-modal__msg{font-size:16px; line-height:1.55; color:var(--title); margin-bottom:22px;}
+  .mood-modal__close{border:0; background:var(--accent); color:#fff; font-weight:700; font-size:14px; padding:11px 28px; border-radius:999px; cursor:pointer; transition:opacity .15s ease;}
+  .mood-modal__close:hover{opacity:.88;}
 
   nav.cats{max-width:1180px; margin:0 auto; padding:20px 20px 0; display:flex; gap:8px; flex-wrap:wrap; animation:fadeUp .5s ease both;}
   nav.cats button{border:0; background:var(--chip-bg); color:var(--text); font-weight:600; font-size:12.5px; letter-spacing:.02em; text-transform:uppercase; padding:9px 16px; border-radius:999px; cursor:pointer; transition:background .15s ease, color .15s ease;}
@@ -153,11 +178,32 @@
 
 <header>
   <div class="header__inner">
-    <a class="logo" href="/">Geek<span class="dot">Noticias</span></a>
+    <a class="logo" href="/"><img src="/img/logo.png" alt="" width="26" height="26">Geek<span class="dot">Noticias</span></a>
     <nav><a href="/historias.html">Historias →</a> &nbsp; <a href="/cronicas.html">Crónicas →</a></nav>
   </div>
   <div class="loadbar"></div>
 </header>
+
+<div class="moodbar" id="moodbar">
+  <div class="moodbar__inner">
+    <span class="moodbar__text">¿Cómo te sientes hoy?</span>
+    <div class="moodbar__btns">
+      <button type="button" class="moodbar__btn" data-mood="triste" aria-label="Triste">😢</button>
+      <button type="button" class="moodbar__btn" data-mood="alegre" aria-label="Alegre">😄</button>
+      <button type="button" class="moodbar__btn" data-mood="pensativo" aria-label="Pensativo">🤔</button>
+      <button type="button" class="moodbar__btn" data-mood="sinanimo" aria-label="Sin ánimo">😴</button>
+    </div>
+    <button type="button" class="moodbar__close" id="moodbarClose" aria-label="Cerrar">✕</button>
+  </div>
+</div>
+
+<div class="mood-overlay" id="moodOverlay">
+  <div class="mood-modal">
+    <div class="mood-modal__emoji" id="moodModalEmoji"></div>
+    <div class="mood-modal__msg" id="moodModalMsg"></div>
+    <button type="button" class="mood-modal__close" id="moodModalClose">Cerrar</button>
+  </div>
+</div>
 
 <div class="newsbar">
   <div class="newsbar__inner">
@@ -247,6 +293,122 @@ themeToggleBtn.addEventListener('click', () => {
   applyThemeIcon();
 });
 applyThemeIcon();
+
+// ── ¿Cómo te sientes hoy? ───────────────────────────────────────────────
+// Aparece una vez por día (localStorage). Al elegir un ánimo, muestra un
+// mensaje al azar de esa categoría, sin repetir hasta agotar el pool.
+const MOOD_EMOJI = { triste: '😢', alegre: '😄', pensativo: '🤔', sinanimo: '😴' };
+const MOOD_MESSAGES = {
+  triste: [
+    'Está bien no estar bien todo el tiempo. Date el permiso de sentirlo, sin apuro.',
+    'Dato random para distraerte: los pulpos tienen tres corazones. Ojalá alguno te preste uno hoy.',
+    'Si hoy solo lograste levantarte, ya fue suficiente. En serio.',
+    'Los días grises también pasan — no para siempre, pero sí hoy. Mañana es otro tiro.',
+    'Tip: tomar agua, salir un rato al sol y mandar un audio a alguien de confianza ayuda más de lo que parece.',
+    'No tenés que explicarle a nadie por qué estás triste. A veces simplemente se está.',
+    'Chiste malo para subir un 2%: ¿Por qué el libro de matemáticas estaba triste? Porque tenía demasiados problemas.',
+    'Sea lo que sea que esté pasando, no lo estás manejando mal. Lo estás manejando como podés, y eso alcanza.',
+    'Un abrazo virtual, cortesía de GeekNoticias. Sabemos que no es lo mismo, pero algo es algo.',
+    'Las lágrimas también son una forma de soltar presión. No hay nada malo en usarlas.',
+    'Sentirte así hoy no define cómo vas a sentirte el resto de la semana.',
+    'Si podés, bajá el ritmo hoy. No todo tiene que resolverse ahora mismo.',
+    'A veces ayuda escribir lo que sentís, aunque sea una lista desordenada. Nadie más lo tiene que leer.',
+    'Estás permitido a tener un mal día. Ninguna racha de días buenos se rompe por eso.',
+  ],
+  alegre: [
+    '¡Esa energía se nota hasta acá! Aprovechá el envión para hacer algo que veías postergando.',
+    'Dato random: reír de verdad libera las mismas endorfinas que correr 10 minutos. Seguí así.',
+    'Buen día para mandar ese mensaje que tenías pendiente a alguien que te cae bien.',
+    'Chiste: ¿Qué le dice un jaguar a otro jaguar? Nada, los jaguares no hablan. (lo sentimos, era eso o nada)',
+    'Contagiá esa buena onda — un comentario lindo a alguien hoy puede cambiarle el día entero.',
+    'Aprovechá y anotá 3 cosas que salieron bien hoy. Después de un mal día, esa lista va a servir.',
+    'Recordatorio: también podés estar orgulloso/a de vos mismo/a hoy, sin motivo especial.',
+    'Con esa energía, hasta las noticias del día se leen distinto.',
+    'Los días buenos también hay que disfrutarlos sin culpa, no solo los especiales.',
+    'Chiste malo #2: ¿Cómo se dice pared en inglés? Wall. ¿Y en portugués? Parede. (perdón)',
+    'Guardá este buen momento en la memoria — va a servir en un día gris.',
+    'Si tenés ganas de bailar aunque sea un segundo en la silla, es válido y recomendado.',
+    'Buen ánimo + buena música = combo ganador. Ponete algo que te guste ahora mismo.',
+    'Este también es un buen momento para agradecer algo, aunque sea chico.',
+  ],
+  pensativo: [
+    'A veces las mejores respuestas aparecen cuando dejás de buscarlas con tanta fuerza.',
+    'Dato para pensar: el cerebro humano procesa una imagen en 13 milisegundos. Pensá rápido, decidí despacio.',
+    '¿Y si la duda que tenés hoy no necesita resolverse hoy?',
+    'Pregunta random: si pudieras darle un consejo a la versión de vos de hace un año, ¿cuál sería?',
+    'No todas las cosas que pensás tienen que convertirse en decisiones inmediatas.',
+    'Estar pensativo no es lo mismo que estar estancado. A veces es procesamiento puro.',
+    'Frase para masticar: "No se puede cruzar el mismo río dos veces" — Heráclito. Ni vos sos el/la mismo/a de ayer.',
+    'Si algo te está dando vueltas en la cabeza, escribirlo en una frase corta a veces lo ordena.',
+    'Curiosidad: los pulpos sueñan (cambian de color mientras duermen). No sos el único al que le dan vueltas las cosas de noche.',
+    'A veces pensar mucho una decisión es señal de que te importa. Otras, señal de que hay que soltarla. ¿Cuál es hoy?',
+    '¿Qué pasaría si la respuesta que buscás ya la sabés, pero te da miedo aceptarla?',
+    'Dato curioso: la miel no se echa a perder nunca. No tiene nada que ver con lo que estás pensando, pero quedó lindo el dato.',
+    'Reflexión corta: no todo lo que te preocupa hoy te va a importar en un año.',
+    'A veces el silencio es donde mejor se piensa. Date cinco minutos sin pantalla si podés.',
+  ],
+  sinanimo: [
+    'Los días de bajón de energía también cuentan. No hace falta rendir al 100% siempre.',
+    'Tip chico: tomá agua, comé algo, y date 10 minutos de nada antes de seguir. El cuerpo también pide pausa.',
+    'Dato random: las plantas también "descansan" de noche cerrando sus estomas. Hasta ellas paran.',
+    'Si hoy el rendimiento es bajo, no pasa nada. Mañana no arranca en cero, arranca donde quedaste.',
+    'Chiste flojo para un día flojo: ¿Por qué la computadora fue al médico? Porque tenía un virus. (ni el chiste tenía energía, como vos hoy)',
+    'Sin ánimo también es información: tu cuerpo te está pidiendo bajar el ritmo. Escuchalo si podés.',
+    'No todos los días hay que ser productivo. Hoy puede ser un día de solo sobrevivir la lista, y está bien.',
+    'Un café, una siesta corta o simplemente sentarte 5 minutos sin hacer nada — elegí tu combo de hoy.',
+    'El cansancio de hoy no significa que mañana vaya a ser igual. Es un día, no una tendencia.',
+    'Dato: dormir mal una noche puede bajar el ánimo hasta 3 días. Si podés, priorizá dormir bien hoy.',
+    'No tenés que estar "a full" para que el día cuente. Ya llegaste hasta acá, es algo.',
+    'Bajá las expectativas de hoy a la mitad. Es un truco válido y funciona más seguido de lo que creés.',
+    'El sillón te está llamando y por una vez, contestale sin culpa.',
+    'Hacé lo mínimo necesario hoy. Mañana con más pilas se retoma el resto.',
+  ],
+};
+
+function pickMoodMessage(mood) {
+  const key = 'mood_shown_' + mood;
+  const pool = MOOD_MESSAGES[mood];
+  let shown = [];
+  try { shown = JSON.parse(localStorage.getItem(key) || '[]'); } catch { shown = []; }
+  let available = pool.map((_, i) => i).filter((i) => !shown.includes(i));
+  if (available.length === 0) { shown = []; available = pool.map((_, i) => i); }
+  const idx = available[Math.floor(Math.random() * available.length)];
+  shown.push(idx);
+  localStorage.setItem(key, JSON.stringify(shown));
+  return pool[idx];
+}
+
+(function initMoodBar() {
+  const moodbar = document.getElementById('moodbar');
+  const overlay = document.getElementById('moodOverlay');
+  const modalEmoji = document.getElementById('moodModalEmoji');
+  const modalMsg = document.getElementById('moodModalMsg');
+  const today = new Date().toISOString().slice(0, 10);
+
+  function dismissBar() {
+    localStorage.setItem('mood_bar_seen', today);
+    moodbar.style.display = 'none';
+  }
+
+  if (localStorage.getItem('mood_bar_seen') === today) {
+    moodbar.style.display = 'none';
+    return;
+  }
+
+  document.getElementById('moodbarClose').addEventListener('click', dismissBar);
+  document.querySelectorAll('.moodbar__btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const mood = btn.dataset.mood;
+      modalEmoji.textContent = MOOD_EMOJI[mood];
+      modalMsg.textContent = pickMoodMessage(mood);
+      overlay.classList.add('show');
+    });
+  });
+  document.getElementById('moodModalClose').addEventListener('click', () => {
+    overlay.classList.remove('show');
+    dismissBar();
+  });
+})();
 
 const CATEGORIA_LABEL = { ia: 'IA', videojuegos: 'Videojuegos', actualidad: 'Actualidad', deportes: 'Deportes', salud: 'Salud' };
 const feature = document.getElementById('feature');
