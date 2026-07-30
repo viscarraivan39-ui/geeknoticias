@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GeekNoticias — IA, Videojuegos y Actualidad</title>
-<meta name="description" content="Noticias de inteligencia artificial, videojuegos y actualidad, actualizadas todos los días.">
+<title>GeekNoticias — IA, Videojuegos, Deportes y Actualidad</title>
+<meta name="description" content="Noticias de inteligencia artificial, videojuegos, deportes, salud y actualidad, actualizadas todos los días.">
 <link rel="canonical" href="https://geeknoticias.com/">
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5927579839118584"
@@ -150,6 +150,8 @@
   <button data-cat="ia">IA</button>
   <button data-cat="videojuegos">Videojuegos</button>
   <button data-cat="actualidad">Actualidad</button>
+  <button data-cat="deportes">Deportes</button>
+  <button data-cat="salud">Salud</button>
 </nav>
 
 <div class="section">
@@ -205,7 +207,7 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 totopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-const CATEGORIA_LABEL = { ia: 'IA', videojuegos: 'Videojuegos', actualidad: 'Actualidad' };
+const CATEGORIA_LABEL = { ia: 'IA', videojuegos: 'Videojuegos', actualidad: 'Actualidad', deportes: 'Deportes', salud: 'Salud' };
 const feature = document.getElementById('feature');
 const grid = document.getElementById('grid');
 const catsNav = document.getElementById('cats');

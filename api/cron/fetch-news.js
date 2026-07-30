@@ -60,6 +60,18 @@ const CATEGORIES = [
     imageFallbackQuery: 'news current events',
     lang: 'es',
   },
+  {
+    categoria: 'deportes',
+    queries: ['fútbol Chile OR Copa Libertadores OR selección chilena', 'deporte OR Fórmula 1 OR NBA OR tenis'],
+    imageFallbackQuery: 'sports stadium action',
+    lang: 'es',
+  },
+  {
+    categoria: 'salud',
+    queries: ['salud y bienestar', 'avance médico OR nutrición OR salud mental'],
+    imageFallbackQuery: 'health wellness lifestyle',
+    lang: 'es',
+  },
 ];
 
 const MAX_PER_QUERY = 3; // candidatos por búsqueda

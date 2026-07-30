@@ -3,7 +3,7 @@
 create table if not exists noticias (
   id bigint generated always as identity primary key,
   slug text not null unique,
-  categoria text not null,               -- 'ia' | 'videojuegos' | 'actualidad'
+  categoria text not null,               -- 'ia' | 'videojuegos' | 'actualidad' | 'deportes' | 'salud'
   titulo text not null,
   resumen text not null,
   contenido_html text not null,
