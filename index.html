@@ -95,6 +95,20 @@
   nav.cats button:hover{background:var(--accent-soft); color:var(--accent);}
   nav.cats button.active{background:var(--accent); color:#fff;}
 
+  .secciones{max-width:1180px; margin:14px auto 0; padding:0 20px; display:flex; gap:10px; flex-wrap:wrap;}
+  .secciones a{font-weight:700; font-size:12.5px; letter-spacing:.02em; padding:9px 18px; border-radius:999px; display:inline-flex; align-items:center; gap:6px; transition:transform .15s ease;}
+  .secciones a:hover{transform:translateY(-1px);}
+  .secciones a.historias{background:rgba(124,58,237,0.12); color:#7c3aed;}
+  .secciones a.cronicas{background:rgba(13,125,94,0.12); color:#0d7d5e;}
+  @media (prefers-color-scheme: dark){
+    .secciones a.historias{background:rgba(183,148,246,0.16); color:#b794f6;}
+    .secciones a.cronicas{background:rgba(61,219,160,0.16); color:#3ddba0;}
+  }
+  :root[data-theme="dark"] .secciones a.historias{background:rgba(183,148,246,0.16); color:#b794f6;}
+  :root[data-theme="dark"] .secciones a.cronicas{background:rgba(61,219,160,0.16); color:#3ddba0;}
+  :root[data-theme="light"] .secciones a.historias{background:rgba(124,58,237,0.12); color:#7c3aed;}
+  :root[data-theme="light"] .secciones a.cronicas{background:rgba(13,125,94,0.12); color:#0d7d5e;}
+
   .section{max-width:1180px; margin:0 auto; padding:26px 20px 60px;}
   .empty{text-align:center; padding:40px 20px; color:var(--text-dim); font-size:14px;}
 
@@ -235,6 +249,11 @@
   <button data-cat="deportes">Deportes</button>
   <button data-cat="salud">Salud</button>
 </nav>
+
+<div class="secciones">
+  <a class="historias" href="/historias.html">📖 Historias — relatos de Bastián</a>
+  <a class="cronicas" href="/cronicas.html">✍️ Crónicas — ensayos de Franco Islas</a>
+</div>
 
 <div class="section">
   <div id="feature"></div>
