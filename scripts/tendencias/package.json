@@ -1,0 +1,7 @@
+{
+  "name": "tendencias",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fuente de tendencias diarias (Google Trends RSS) para el newsjacking de contenido"
+}
