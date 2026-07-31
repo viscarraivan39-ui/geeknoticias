@@ -11,6 +11,12 @@ vertical 9:16, listo para TikTok/Reels/FB Shorts o YouTube Shorts.
 Script real: `scripts/video-pipeline/build.mjs` (en este repo). Requiere
 `NVIDIA_API_KEY` en el entorno y ffmpeg/ffprobe instalados.
 
+El guion se pasa como argumento: `node build.mjs guiones/<archivo>.mjs`. Cada
+video nuevo es un archivo nuevo en `guiones/` (exporta `id` + `bloques`), no
+se edita el guion anterior. El resultado queda en
+`assets/<id-del-guion>/final.mp4` — cada guion en su propia carpeta, así que
+se pueden generar varios videos en lote sin que se pisen entre sí.
+
 ## 1. Estructura del guion (Biblia de Video — obligatoria, no saltarse)
 
 1. **Gancho (0-3/7s):** cero marca, pregunta disruptiva o revelación urgente.
