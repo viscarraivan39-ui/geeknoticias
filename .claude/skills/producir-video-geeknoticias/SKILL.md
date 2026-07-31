@@ -143,8 +143,16 @@ descripción más obvia de la categoría.
 
 - No hay conector automático "noticia real → JSON de `BLOQUES`" — hoy ese
   guion se arma a mano siguiendo las reglas de arriba.
-- No hay publicación automática a Facebook (a propósito, hasta aprobar calidad
-  de forma consistente).
+- **Publicación a Facebook**: resuelto — `publicarFacebook.mjs` sube video a
+  `/{page-id}/videos` (Facebook los categoriza como Reels automáticamente).
+  Requiere `FB_PAGE_ID` y `FB_PAGE_ACCESS_TOKEN` — **ojo con esto último: tiene
+  que ser un token de PÁGINA, no de usuario**, aunque el token de usuario
+  tenga `publish_video` en sus scopes igual lo rechaza con error #100. El
+  token de página correcto sale de `/me/accounts` (con un token de usuario
+  válido), campo `data[].access_token` de la página correspondiente — no del
+  Graph API Explorer directo salvo que ahí mismo se seleccione explícitamente
+  la página, no la app. Sigue siendo manual (yo lo corro cuando el usuario
+  aprueba un video puntual), no hay cron automático de publicación todavía.
 - No hay cola/lote para generar varios videos por corrida.
 - GIFs/memes de reacción como pattern-interrupt: no implementado, evaluar
   Tenor/GIPHY API (licencia pensada para este uso) antes que "memes" sueltos
