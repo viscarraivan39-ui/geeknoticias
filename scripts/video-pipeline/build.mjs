@@ -458,22 +458,19 @@ async function procesarBloque(bloque) {
   return `${bloque.id}_clip.mp4`;
 }
 
-// Overlays permanentes de marca sobre el video ya concatenado:
-// - Cero marca en 0:00-0:03
-// - Golpe visual de marca ("ÚLTIMA HORA" + logo) entre 0:03 y 0:04
-// - Logo esquina + cintillo "geeknoticias.com" permanentes desde el segundo 3
+// Marca de agua discreta y fija — SIN el flash de "ÚLTIMA HORA" + logo grande
+// que había antes (feedback: quedaba feo, interrumpía en los primeros
+// segundos) y SIN la franja negra pesada abajo. Solo dos elementos chicos,
+// semi-transparentes, con fundido de entrada, que no tocan la zona de
+// subtítulos (subtítulos en y=h-360; la marca de agua va más abajo, en
+// y=h-70, fuera de esa franja):
+// - logo chico arriba-izquierda
+// - texto "geeknoticias.com" chico abajo-derecha
 async function aplicarOverlaysDeMarca(inputName, outName) {
   const filter = [
-    // Logo permanente: fundido suave de 0.6s en vez de aparecer de golpe, y más
-    // transparente (0.65 en vez de 0.85) para que se sienta integrado, no pegado.
-    `[1:v]scale=170:-1,format=rgba,colorchannelmixer=aa=0.65,fade=t=in:st=3:d=0.6:alpha=1[logosmall]`,
-    `[1:v]scale=380:-1,format=rgba[logobig]`,
-    `[0:v][logosmall]overlay=30:50[v1]`,
-    `[v1]drawbox=x=0:y=ih-150:w=iw:h=150:color=black@0.55:t=fill:enable='gte(t,3)'[v2]`,
-    `[v2]drawtext=fontfile='${FONT}':text='geeknoticias.com':fontcolor=white:fontsize=46:x=(w-text_w)/2:y=h-100:enable='gte(t,3)'[v3]`,
-    `[v3]drawbox=x=0:y=160:w=iw:h=170:color=0xE63946@0.88:t=fill:enable='between(t,3,4)'[v4]`,
-    `[v4]drawtext=fontfile='${FONT}':text='ÚLTIMA HORA':fontcolor=white:fontsize=72:x=(w-text_w)/2:y=200:enable='between(t,3,4)'[v5]`,
-    `[v5][logobig]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2:enable='between(t,3,4)'[vout]`,
+    `[1:v]scale=150:-1,format=rgba,colorchannelmixer=aa=0.55,fade=t=in:st=1:d=0.6:alpha=1[logosmall]`,
+    `[0:v][logosmall]overlay=30:40[v1]`,
+    `[v1]drawtext=fontfile='${FONT}':text='geeknoticias.com':fontcolor=white@0.55:fontsize=32:borderw=2:bordercolor=black@0.4:x=w-text_w-30:y=h-70:enable='gte(t,1)'[vout]`,
   ].join(";");
 
   await run("ffmpeg", [
@@ -532,7 +529,7 @@ async function main() {
     "-c", "copy", "sinmarca.mp4",
   ], { cwd: DIR });
 
-  console.log("3/5 — Aplicando overlays de marca (logo, cintillo, flash ÚLTIMA HORA)...");
+  console.log("3/5 — Aplicando marca de agua (logo + geeknoticias.com)...");
   await aplicarOverlaysDeMarca("sinmarca.mp4", "conmarca.mp4");
 
   console.log("4/5 — Mezclando música de fondo...");

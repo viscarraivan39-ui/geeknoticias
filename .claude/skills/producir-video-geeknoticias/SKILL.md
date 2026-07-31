@@ -101,13 +101,43 @@ El primer bloque (`gancho`) lleva 0.7s de silencio real al inicio del audio
 
 ## 5. Overlays de marca (fijos, no cambiar sin que el usuario lo pida)
 
-- 0:00-0:03: cero marca.
-- 0:03-0:04: flash de marca — logo grande + banner rojo "ÚLTIMA HORA".
-- Desde 0:03 en adelante, permanente: logo pequeño arriba-izquierda (con
-  fundido de entrada de 0.6s, no aparece de golpe) + cintillo inferior con
-  `geeknoticias.com`.
-- Subtítulos en el tercio inferior, arriba del cintillo — líneas cortas
-  (~26 caracteres) para no cortarse en los bordes en 1080px de ancho.
+**Sin flash de marca** — se probó un golpe visual (logo grande + banner rojo
+"ÚLTIMA HORA" a los 3-4s) y no funcionó: interrumpía muy pronto y quedaba
+feo. No reintroducirlo salvo pedido explícito.
+
+- Marca de agua discreta y fija, sin franjas pesadas: logo chico
+  arriba-izquierda (semi-transparente, fundido de entrada) + texto
+  `geeknoticias.com` chico abajo-derecha (semi-transparente, sin caja de
+  fondo). Ninguno de los dos toca la zona de subtítulos.
+- Subtítulos en el tercio inferior — líneas cortas (~26 caracteres) para no
+  cortarse en los bordes en 1080px de ancho.
+- El banner rojo con la palabra clave del bloque (`keyword`, ej. "MUNDIAL
+  2026") en el centro de pantalla al inicio de cada bloque **sí se mantiene**
+  — es distinto al flash de marca que se sacó, y no generó queja.
+
+## 5b. Duración del guion — no forzar todo a <60s
+
+Un video de menos de un minuto para una noticia con varios ángulos reales
+(un jugador, una llamada, un fallo de comité, una filtración financiera)
+sale acelerado y sin desarrollo. **La duración la define la profundidad real
+de la noticia, no un número fijo**: si hay 4-5 hechos distintos que contar,
+el cuerpo (contexto → problema → giro) se extiende para darles espacio a
+todos, aunque el video termine pasando el minuto — eso es long-form válido
+según la sección 1, no un error. No recortar contenido real solo para
+quedar bajo 60s.
+
+## 5c. Prompts de imagen únicos entre videos, no solo dentro de uno
+
+No alcanza con que las tomas de UN video sigan el diálogo (sección 2) — si
+dos videos distintos son del mismo rubro (ej. dos noticias de fútbol), sus
+prompts genéricos ("estadio con luces, plano amplio, confetti") pueden
+generar imágenes visualmente parecidas entre sí aunque el texto del prompt
+sea distinto, porque FLUX converge a composiciones similares para
+descripciones genéricas del mismo tipo de escena. Al escribir `imagenPrompt`
+para escenas genéricas, sumar un detalle visual específico y distinto de esa
+noticia en particular (un color de uniforme, un elemento de escenario
+concreto, un ángulo de cámara poco común) en vez de quedarse en la
+descripción más obvia de la categoría.
 
 ## 6. Pendiente / fuera de alcance de este skill todavía
 
