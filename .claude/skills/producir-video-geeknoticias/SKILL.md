@@ -37,9 +37,28 @@ dura más de ~10s, partirlo en más `tomas` (no dejar 1-2 tomas largas).
 
 ## 2. Cómo decidir cada imagen (regla obligatoria)
 
-Por cada "toma" (sub-plano) del guion, preguntarse: **¿el diálogo en ese
-momento nombra una persona pública real, un lugar real específico, o algo
-genérico?**
+**Esto aplica solo a la parte audiovisual (los videos generados por este
+pipeline).** No toca las imágenes estáticas de los artículos del sitio
+(`lib/cronNews.js`) — esas siempre van fotorrealistas vía FLUX/Commons, sin
+importar la categoría de la noticia; el criterio de esta sección es
+específico de video.
+
+**2.1 — Estilo visual según el tipo de video (decidir primero):**
+- **Noticia dura** (política, economía, tecnología seria — cualquier cosa
+  donde la credibilidad periodística importa): **fotorrealista**, siguiendo
+  las reglas de abajo (2.2). Un dibujo cómic de un hecho real le resta
+  seriedad justo donde más importa.
+- **Entretenimiento/tendencias livianas, Historias, Crónicas, o contenido de
+  otra marca no-noticiosa** (ej. AvíspateYa): **estilo cómic/dibujo
+  gracioso** es una opción válida — ver
+  `expert-octo-couscous/scripts/video-pipeline/guiones/cahuin-vecino-tacano.mjs`
+  como referencia de implementación. Ventaja extra: el estilo cómic esquiva
+  el filtro de contenido de FLUX en rostros, así que en este modo sí se
+  pueden mostrar caras/expresiones de personajes inventados libremente.
+
+**2.2 — Para video fotorrealista, por cada "toma" (sub-plano) del guion,
+preguntarse: ¿el diálogo en ese momento nombra una persona pública real, un
+lugar real específico, o algo genérico?**
 
 - **Persona/lugar real** (ej. un jugador, un presidente de federación, un
   edificio específico) → `{ personaReal: "Nombre exacto" }`. El script busca
