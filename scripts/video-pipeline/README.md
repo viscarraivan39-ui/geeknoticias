@@ -14,14 +14,25 @@ lo demás) → ffmpeg (zoompan, subtítulos, overlays de marca) → video final.
 
 ```
 npm install
-NVIDIA_API_KEY=nvapi-... node build.mjs
+NVIDIA_API_KEY=nvapi-... node build.mjs guiones/<archivo>.mjs
 ```
 
-El resultado queda en `assets/final.mp4`.
+El resultado queda en `assets/<id-del-guion>/final.mp4`. Cada guion escribe en
+su propia carpeta, así que se pueden generar varios videos sin que se pisen
+entre sí (lote de prueba: correr el comando varias veces con guiones
+distintos).
 
-## Editar el guion
+## Guiones disponibles
 
-El array `BLOQUES` en `build.mjs` define el guion. Cada bloque puede traer:
+- `guiones/futbol-infantino-fifa.mjs`
+- `guiones/tech-github-models.mjs`
+- `guiones/deporte-kings-world-cup.mjs`
+- `guiones/entretenimiento-casa-famosos.mjs`
+
+## Escribir un guion nuevo
+
+Cada archivo en `guiones/` exporta `id` (nombre de la carpeta de salida) y
+`bloques` (el guion). Cada bloque puede traer:
 
 - `tomas`: array de imágenes, una por cada momento del diálogo (recomendado).
   Cada toma es `{ personaReal: "Nombre" }` (busca foto real en Commons) o

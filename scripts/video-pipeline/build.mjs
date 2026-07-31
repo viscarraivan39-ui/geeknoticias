@@ -18,69 +18,15 @@ const LOGO_PATH = "C:\\Users\\Maxi\\Nueva carpeta\\geeknoticias\\img\\logo.png";
 
 // Estructura "Biblia de Video GeekNoticias": Gancho -> Contexto -> Problema -> Giro/Solución -> CTA específico.
 // Gancho reformulado como pregunta disruptiva (regla de apertura), sin ceder el final.
-const BLOQUES = [
-  {
-    id: "gancho",
-    texto: "¿Puede Infantino terminar denunciado ante el Comité Olímpico? Lo que se supo esta semana lo pone contra las cuerdas.",
-    // Cada "toma" corresponde a lo que se está diciendo en ese momento del bloque,
-    // en vez de una sola imagen genérica repetida. personaReal -> foto real de
-    // Commons (licencia libre); imagenPrompt -> FLUX si no hay entidad real.
-    tomas: [
-      { personaReal: "Gianni Infantino" },
-      { personaReal: "Gianni Infantino" }, // mismo tema todo el gancho, zoompan alternado da variación
-    ],
-    keyword: null,
-  },
-  {
-    id: "contexto",
-    texto: "La FIFA acaba de cerrar el Mundial 2026, pero para su presidente la celebración duró poco. En los días siguientes a la final, empezó a acumular denuncias, críticas y una polémica que todavía no se apaga.",
-    tomas: [
-      { imagenPrompt: "Empty World Cup stadium after the final match, confetti settling on the pitch under stadium lights, photorealistic vertical shot" }, // "FIFA acaba de cerrar el Mundial"
-      { personaReal: "Gianni Infantino" }, // "para su presidente"
-      { imagenPrompt: "Close-up of newspaper front pages with sports headlines on a table, dramatic lighting, no visible faces, photorealistic vertical photo" }, // "denuncias, críticas"
-      { imagenPrompt: "Press photographers' cameras with flashes going off, dark background, no visible faces, photorealistic vertical photo" }, // "polémica que no se apaga"
-    ],
-    keyword: "MUNDIAL 2026",
-  },
-  {
-    id: "problema",
-    texto: "Todo partió con una tarjeta roja. El delantero estadounidense Folarin Balogun fue expulsado durante el torneo, pero la sanción se levantó después de una llamada telefónica de Donald Trump a Infantino pidiendo revisar el caso. El cinco de julio, el comité disciplinario de la FIFA falló a favor de Balogun. La Federación Noruega de Fútbol ya anunció que presentará una denuncia formal ante la Comisión de Ética del COI por cómo se tomó esa decisión.",
-    // 8 tomas para respetar cortes cada ~3s en un bloque de 25.8s (4 tomas
-    // hubiera dado planos de 6.45s, muy por encima de los 2.5-3.5s de la Biblia).
-    tomas: [
-      { imagenPrompt: "Referee's hand holding up a red card, close-up, blurred soccer pitch in the background, no visible faces, photorealistic sports photography, vertical composition" }, // "tarjeta roja"
-      { personaReal: "Folarin Balogun" }, // "el delantero... fue expulsado"
-      { imagenPrompt: "Close-up of a hand holding a phone during a call, dark office setting, no visible face, photorealistic vertical photo" }, // "llamada telefónica"
-      { personaReal: "Donald Trump" }, // "Donald Trump a Infantino"
-      { imagenPrompt: "Wooden gavel on a desk in a formal committee room, dramatic lighting, no visible faces, photorealistic vertical photo" }, // "comité disciplinario de la FIFA"
-      { personaReal: "Folarin Balogun" }, // "falló a favor de Balogun"
-      { imagenPrompt: "Close-up of a formal letter document with an official stamp, dramatic lighting, no visible faces, photorealistic vertical photo" }, // "denuncia formal"
-      { personaReal: "Gianni Infantino" }, // "ante la Comisión de Ética... esa decisión"
-    ],
-    keyword: "COMITÉ DE ÉTICA",
-  },
-  {
-    id: "giro",
-    texto: "Pero el dato más fuerte lo reveló el diario británico The Times: la FIFA estaría evaluando vender un porcentaje del Mundial a inversores cercanos a Trump, y Infantino pasaría a ser comisionado de esa nueva empresa a cargo del torneo. Días antes, el propio Infantino había respondido a sus críticos acusándolos de difundir odio y falsos rumores, una frase que, lejos de bajar la tensión, la subió.",
-    // 7 tomas para un bloque de 21.96s (~3.1s cada una, dentro del rango de la Biblia).
-    tomas: [
-      { imagenPrompt: "Close-up of a newspaper page with financial headlines, dark moody lighting, no visible faces, photorealistic vertical photo" }, // "el diario The Times reveló"
-      { imagenPrompt: "Stock market financial charts on a screen, dramatic blue lighting, no visible faces, photorealistic vertical photo" }, // "FIFA evaluando vender un porcentaje"
-      { personaReal: "Donald Trump" }, // "inversores cercanos a Trump"
-      { personaReal: "Gianni Infantino" }, // "Infantino pasaría a ser comisionado"
-      { imagenPrompt: "Close-up of two hands shaking, dark suit sleeves, blurred stadium lights in the background, no visible faces, photorealistic editorial photograph, vertical composition" }, // "esa nueva empresa a cargo del torneo"
-      { personaReal: "Gianni Infantino" }, // "el propio Infantino había respondido a sus críticos"
-      { imagenPrompt: "Close-up of a smartphone screen showing social media comments, dim lighting, no visible faces, photorealistic vertical photo" }, // "odio y falsos rumores"
-    ],
-    keyword: "THE TIMES",
-  },
-  {
-    id: "cta",
-    texto: "Te dejamos el informe completo de The Times sobre el plan de privatización. Link en el primer comentario.",
-    imagenPrompt: "Close-up of hands holding a smartphone showing a financial news headline, blurred stadium lights in the background, photorealistic vertical photo",
-    keyword: null,
-  },
-];
+// El guion (BLOQUES) se pasa como primer argumento de CLI, apuntando a un
+// archivo en guiones/. Ej: node build.mjs guiones/tech-github-models.mjs
+const guionArg = process.argv[2];
+if (!guionArg) {
+  console.error("Uso: node build.mjs guiones/<archivo>.mjs");
+  process.exit(1);
+}
+const guionPath = guionArg.startsWith(".") || guionArg.includes("/") ? guionArg : `./guiones/${guionArg}`;
+const { id: GUION_ID, bloques: BLOQUES } = await import(new URL(guionPath, import.meta.url));
 
 const ANGULOS = [
   "wide establishing shot",
@@ -101,8 +47,8 @@ const ANGULOS_SIN_ROSTRO = [
   "high angle shot, distant framing",
 ];
 
-const DIR = "assets";
-if (!existsSync(DIR)) mkdirSync(DIR);
+const DIR = `assets/${GUION_ID}`;
+if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
 
 async function generarAudio(bloque, intento = 0) {
   try {
@@ -197,13 +143,17 @@ async function descargarImagen(prompt, path, intento = 0) {
       await sleep(4000 * (intento + 1));
       return descargarImagen(prompt, path, intento + 1);
     }
-    if (err.contentFiltered) {
-      console.log(`      ⚠ CONTENT_FILTERED persistente, usando prompt de respaldo para ${path}`);
+    // Cualquier falla persistente (filtro de contenido, timeout de red, 5xx
+    // transitorio de NVIDIA) cae al respaldo — mejor una imagen genérica que
+    // tirar abajo todo el render de un video por una sola toma.
+    console.log(`      ⚠ falla persistente (${err.message}), usando prompt de respaldo para ${path}`);
+    try {
       const base64 = await llamarFlux(PROMPT_RESPALDO);
       writeFileSync(path, Buffer.from(base64, "base64"));
       return path;
+    } catch (err2) {
+      throw err; // si hasta el respaldo falla, ahí sí propagar el error original
     }
-    throw err;
   }
 }
 
@@ -589,7 +539,7 @@ async function main() {
   await mezclarMusica("conmarca.mp4", "final.mp4");
 
   const duracionTotal = await duracionSegundos(`${DIR}/final.mp4`);
-  console.log(`5/5 — Video final listo en assets/final.mp4 — duración: ${duracionTotal.toFixed(1)}s (${(duracionTotal / 60).toFixed(2)} min)`);
+  console.log(`5/5 — Video final listo en ${DIR}/final.mp4 — duración: ${duracionTotal.toFixed(1)}s (${(duracionTotal / 60).toFixed(2)} min)`);
 }
 
 main().catch((err) => {
