@@ -52,7 +52,7 @@ export async function obtenerTendencias(geoArg = geo, limite = cantidad) {
 // pathToFileURL en vez de `file://${argv[1]}` a mano — en Windows esa
 // construcción manual no matchea bien contra import.meta.url.
 import { pathToFileURL } from "node:url";
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const tendencias = await obtenerTendencias();
   console.log(JSON.stringify(tendencias, null, 2));
 }
