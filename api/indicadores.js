@@ -4,9 +4,15 @@
 // mindicador.cl (API pública del gobierno de Chile, sin key).
 // Cacheado agresivo porque estos valores se actualizan una vez al día hábil.
 
+import { rateLimit } from '../lib/rateLimit.js';
+
 export default async function handler(req, res) {
+  if (!(await rateLimit(req, res))) return;
+
   try {
-    const resp = await fetch('https://mindicador.cl/api');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const resp = await fetch('https://mindicador.cl/api', { signal: controller.signal }).finally(() => clearTimeout(timer));
     if (!resp.ok) throw new Error(`mindicador.cl HTTP ${resp.status}`);
     const data = await resp.json();
 

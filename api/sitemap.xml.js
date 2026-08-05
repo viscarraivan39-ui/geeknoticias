@@ -3,6 +3,8 @@
 // Sitemap dinámico: lista home, páginas legales y todas las noticias
 // publicadas. Servido en /sitemap.xml vía rewrite en vercel.json.
 
+import { rateLimit } from '../lib/rateLimit.js';
+
 const SITE = 'https://geeknoticias.com';
 
 function escapeXml(str) {
@@ -10,6 +12,8 @@ function escapeXml(str) {
 }
 
 export default async function handler(req, res) {
+  if (!(await rateLimit(req, res))) return;
+
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
