@@ -5,6 +5,12 @@ Agregar nuevos arriba, con el número siguiente. No borrar entradas viejas.
 
 ---
 
+### BUG-007 — Código fuente descargable desde el sitio (2026-09-29)
+- **Síntoma:** `/lib/*.js` y `/scripts/*` respondían 200: cualquiera podía leer prompts, lógica de crons.
+- **Causa:** Vercel sirve como archivo estático todo lo que está en la raíz del repo.
+- **Arreglo:** `redirects` en `vercel.json` para `/lib/`, `/scripts/` y `/sql/` (se aplican antes que los estáticos; las funciones siguen importando esos archivos).
+- **No reintroducir:** una carpeta nueva con código de servidor se agrega a esos `redirects`. No usar `.vercelignore` para carpetas que importan las funciones.
+
 ### BUG-006 — Deploy falla por pasar de 12 funciones (2026-07-30, `87d90bf`)
 - **Síntoma:** "Error de compilación" en Vercel al agregar `fetch-cronica.js`.
 - **Causa:** Vercel Hobby permite máximo 12 funciones serverless por deploy; quedaron 13.

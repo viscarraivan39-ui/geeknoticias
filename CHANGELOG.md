@@ -4,6 +4,7 @@ Historial de cambios: qué se cambió, cuándo y por qué. Lo más nuevo arriba.
 Lo actualiza la IA al cerrar cada sesión (ver `AGENTS.md`).
 
 ## 2026-09-29
+- **Código de servidor oculto**: `/lib/`, `/scripts/` y `/sql/` ya no se sirven al público (BUG-007).
 - **IA con respaldo** (`6ab378d`): nuevo `lib/llmChat.js` con lista de modelos por proveedor.
   Por qué: `llama-3.3-70b` fue retirado y el sitio llevaba un mes sin publicar (BUG-001).
 - **Docs:** se agregan `AGENTS.md`, `CLAUDE.md`, `docs/BUGS.md` y este changelog.

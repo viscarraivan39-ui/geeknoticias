@@ -36,6 +36,7 @@ Proyecto Vercel: `prj_ECdRN0fFZk9IsuADlVg5ghVwulsy`. Deploy = push a `main`.
   `GNEWS_API_KEY`, `PEXELS_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
   `CRON_SECRET`, `ADMIN_KEY`, `FB_PAGE_ID`, `FB_PAGE_ACCESS_TOKEN`.
 - Cambios de esquema: agregar el `.sql` en `sql/` y avisar a Iván que hay que correrlo en Supabase.
+- **Código de servidor solo en `lib/`, `scripts/`, `sql/`**, bloqueadas al público por `redirects` en `vercel.json`; una carpeta nueva de ese tipo se agrega ahí (BUG-007).
 
 ## Cómo verificar
 - Después del push: estado del deploy en Vercel y `get_runtime_errors` del proyecto.

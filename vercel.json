@@ -5,6 +5,11 @@
   "functions": {
     "api/cron/run.js": { "maxDuration": 60 }
   },
+  "redirects": [
+    { "source": "/lib/:path*", "destination": "/", "permanent": false },
+    { "source": "/scripts/:path*", "destination": "/", "permanent": false },
+    { "source": "/sql/:path*", "destination": "/", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/noticia/:slug", "destination": "/api/noticia/:slug" },
     { "source": "/historia/:slug", "destination": "/api/historia/:slug" },
