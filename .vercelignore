@@ -1,0 +1,6 @@
+# Archivos del repo que no deben publicarse en el sitio
+AGENTS.md
+CLAUDE.md
+CHANGELOG.md
+docs
+sql
